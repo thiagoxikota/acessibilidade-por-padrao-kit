@@ -1,6 +1,6 @@
 # Ficha 1. Teste de teclado (e leitor de tela em 5 minutos)
 
-**Tempo:** 5 minutos por tarefa. **Quem faz:** qualquer pessoa do time, inclusive quem faz o design.
+**Tempo, por tarefa:** uns 5 minutos de teclado, 2 de zoom só no texto e 5 de leitor de tela. Se só der tempo de um, faça o teclado. **Quem faz:** qualquer pessoa do time, inclusive quem faz o design.
 
 ## Antes de começar, no Mac
 
@@ -34,7 +34,7 @@ Se o Tab pular links ou botões em qualquer navegador do Mac, confira o item 2 a
 |---|---|
 | Chego em tudo o que dá para clicar? | Item fora do alcance do teclado. Anote qual. |
 | Consigo sair de cada lugar? | Foco preso. Exceção: numa janela aberta, o foco fica dentro de propósito até o Esc. |
-| Vejo sempre onde o foco está? | Foco invisível ([WCAG 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html)). **Nenhum teste automático pega isso.** |
+| Vejo sempre onde o foco está? | Foco invisível ([WCAG 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html)). **O axe não verifica isso, e a trava deste kit também não.** |
 | O foco fica à vista, sem sumir atrás de cabeçalho fixo ou aviso de cookies? | Foco encoberto ([WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html)). |
 | A ordem faz sentido para a tarefa? | Ordem confusa ([WCAG 2.4.3](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html)). Não precisa ser idêntica à leitura visual, mas precisa preservar o sentido. |
 | O foco fica onde eu deixei? | Foco que pula sozinho. Anote em qual Tab. |

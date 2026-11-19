@@ -1,5 +1,29 @@
 # Mudanças
 
+## 2.1.0, 19/11/2026
+
+Segunda revisão do código e das fontes, à procura de verde falso. A versão 2.0 ainda deixava alguns caminhos abertos.
+
+### Trava
+
+- **Tag de regra com erro de digitação dá erro.** `REGRAS=wcag2aa-typo` selecionava zero regras e passava. Agora a trava confere se o axe conhece cada tag e dá erro se nenhuma regra rodou.
+- **Versão do axe fixa e no relatório.** O axe-core fica em 4.11.4 e a versão sai no relatório, para comparar execuções.
+- **"Resolvido" só com reteste completo.** Um item só sai da linha de base quando foi procurado de novo em cada tela e modo onde aparecia, com a mesma regra rodando. Resultado que o axe não conseguiu decidir não conta como conserto.
+- **Problema conhecido em tela ou modo novo trava.** Antes, ele se escondia na linha de base.
+- **Roteiro termina em `esperar`.** Sem confirmar o estado, um clique que não fez nada deixava a trava olhar a tela errada.
+- **`texto-200` imita o zoom só no texto.** Dobra o tamanho de fonte de cada elemento, inclusive em px, e já vale durante o roteiro. O sinal de texto cortado acha texto dentro de outro elemento e ignora a caixa que já cortava sem ampliar.
+- **`BASE_URL` com subpasta funciona.** Antes, `https://exemplo.github.io/projeto/` testava a raiz do domínio. Endereço sem `http://` dá erro.
+- **Exceção com rota sem `/` e dono só com espaços** passam a ser apontados.
+- **Conserto que muda o seletor não trava mais o próprio conserto.** O axe identifica o elemento por um seletor que pode usar atributos. No menu do DSGov, tirar `role="treeitem"` mudou o seletor de 21 links que continuavam com alvo de toque pequeno: a trava os dava como resolvidos e, ao mesmo tempo, como novos, e travava o conserto. Agora a linha de base guarda também a posição do elemento na página (`xpath`), e o item é reconhecido por um ou por outro. Achado ao rodar o caso real de ponta a ponta.
+- **Listas longas na saída** avisam quantos itens ficaram de fora ("e mais N no relatório").
+- **Teste próprio** de 37 para 55 casos.
+
+### Fichas e textos
+
+- **Ficha 1:** dizia que nenhum teste automático pega foco invisível. Estava errado: há ferramenta que testa ([Siteimprove Alfa, regra SIA-R65](https://alfa.siteimprove.com/rules/sia-r65)). Agora diz que o axe e esta trava não pegam. O tempo por tarefa ficou realista.
+- **Caso do menu do DSGov:** os comandos rodam nos arquivos reais de antes e depois, guardados no repositório de dados.
+- **README:** o começo diz o que precisa instalar.
+
 ## 2.0.0, 19/11/2026
 
 Revisão completa de veracidade, fontes e uso real. A versão 1 tinha dois problemas sérios: contraste baixo, a falha mais comum do estudo, passava pela trava; e várias regras das fichas não tinham fonte.

@@ -23,8 +23,8 @@ Cada linha é uma página com a barreira plantada de propósito, em `teste/pagin
 | Botão sem nome dentro de menu fechado | Passa | Escondido, o axe não olha |
 | O mesmo menu, aberto por um roteiro | **Trava** | O roteiro clica e espera o menu aparecer |
 | Página que rola para o lado em 320 px | Revisar à mão | Sinal geométrico, WCAG 1.4.10 |
-| Texto cortado com a fonte em 200% | Revisar à mão | Sinal geométrico, WCAG 1.4.4 |
-| Foco invisível (`outline: none`) | **Passa: limite conhecido** | Nenhuma regra do axe cobre o critério 2.4.7. Só o [teste de teclado](../fichas/01-teste-de-teclado.md) pega |
+| Texto cortado com o texto em 200%, inclusive texto em px e texto dentro de outro elemento | Revisar à mão | Sinal geométrico, WCAG 1.4.4. Caixa que já cortava sem ampliar não conta |
+| Foco invisível (`outline: none`) | **Passa: limite conhecido** | Nenhuma regra do axe cobre o critério 2.4.7. Faça o [teste de teclado](../fichas/01-teste-de-teclado.md) |
 | Ordem de foco sem sentido | **Passa: limite conhecido** | Idem |
 
 O método vem da auditoria de ferramentas do governo britânico: plante a barreira e confira o que cada ferramenta pega, para nenhuma delas ficar verde em silêncio.
@@ -32,14 +32,14 @@ O método vem da auditoria de ferramentas do governo britânico: plante a barrei
 ## O que ela faz
 
 1. Abre cada rota do site num Chromium, com tela de celular (ou de computador, se você pedir).
-2. Se houver roteiro, clica, preenche e espera até a tela chegar no estado pedido.
+2. Se houver roteiro, clica, preenche e espera até a tela chegar no estado pedido. No modo `texto-200`, o roteiro já roda com o texto ampliado.
 3. Roda o [axe-core](https://github.com/dequelabs/axe-core) com as regras WCAG 2.0, 2.1 e 2.2, níveis A e AA, em até quatro modos:
 
 | Modo | O que simula | O que mede |
 |---|---|---|
 | `normal` | A página como abre | Regras do axe |
 | `cores-forcadas` | Alto contraste do sistema (`forced-colors: active`) | Regras do axe e captura de tela. Nesse modo, sombra some ([CSS Color Adjustment](https://www.w3.org/TR/css-color-adjust-1/)): foco desenhado só com `box-shadow` desaparece. Olhe a captura |
-| `texto-200` | Fonte base dobrada (`html { font-size: 200% }`) | Regras do axe e **texto cortado** por caixa de altura ou largura fixa ([WCAG 1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html)) |
+| `texto-200` | Zoom só no texto: cada elemento com o dobro do tamanho de fonte que tinha, inclusive em px | Regras do axe e **texto cortado** que a ampliação causou ([WCAG 1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html)) |
 | `largura-320` | Tela de 320 px, o mesmo que 1280 px com zoom de 400% | Regras do axe e **rolagem horizontal** ([WCAG 1.4.10](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html)) |
 
 4. Guarda os resultados que o axe marcou como "não consegui decidir" (`incomplete`) na lista de revisão à mão, em vez de descartar.
@@ -49,16 +49,19 @@ O método vem da auditoria de ferramentas do governo britânico: plante a barrei
 |---|---|
 | Problema novo de impacto `critical` ou `serious`, ou de uma regra em `SEMPRE_TRAVA` | **Trava** (código 1) |
 | Problema da linha de base que piorou de impacto | **Trava** |
+| Problema da linha de base que apareceu numa tela ou num modo onde não estava | **Trava**. Se a base foi gerada sem essa tela ou modo, gere de novo |
 | Exceção vencida, mesmo para item da linha de base | **Trava** |
-| Exceção sem `motivo`, `aprovado_por` ou `validade`, ou com data impossível | **Trava** |
+| Exceção sem `motivo`, `aprovado_por` ou `validade`, com data impossível ou com rota sem `/` no começo | **Trava** |
 | Problema que já estava na linha de base | Passa, e aparece na contagem |
+| Problema da linha de base com seletor novo, mas na mesma posição da página | Passa, conta como já existia e avisa para gerar a base de novo |
 | Linha de base sem dono, sem prazo ou com prazo vencido | Passa com aviso. Com `ESTRITO=1`, trava |
 | Problema coberto por exceção dentro da validade | Passa, e mostra quem aprovou e até quando |
 | Problema novo de impacto `moderate` ou `minor` | Passa, como aviso |
 | Exceção que não cobre mais nada | Passa, e avisa que pode sair do arquivo |
-| Item da linha de base que sumiu nas rotas e modos testados | Passa, e avisa que foi resolvido |
+| Item da linha de base que sumiu de toda tela e modo onde aparecia, com a mesma regra rodando e resposta clara do axe | Passa, e avisa que foi resolvido |
+| Item que sumiu, mas não foi procurado de novo em todo lugar, ou que o axe não conseguiu decidir | Continua na linha de base |
 | Texto cortado, rolagem horizontal, regra que o axe não decidiu | Passa, na lista **Para revisar à mão** |
-| Configuração errada, nada para testar, site fora do ar, JSON quebrado, roteiro que não acha o botão | Erro (código 2). Nunca vira verde |
+| Configuração errada, etiqueta de regra que não existe, nada para testar, site fora do ar, JSON quebrado, roteiro que não acha o botão ou que não termina em `esperar` | Erro (código 2). Nunca vira verde |
 
 ### Por que `critical` e `serious`, e por que o zoom trava sempre
 
@@ -88,7 +91,9 @@ BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run linha-de-base
 
 Isso grava `linha-de-base.json` com o que já existe hoje. Preencha `dono` e `prazo` de cada item e faça commit do arquivo. É uma lista de tarefas, não um tapete para esconder problema.
 
-Rodar de novo **preserva** dono, prazo e nota de quem já tinha. Itens novos entram com `[definir]`.
+Rodar de novo **preserva** dono, prazo e nota de quem já tinha, e as telas e modos que não rodaram desta vez. Itens novos entram com `[definir]`.
+
+Cada item é reconhecido pela rota, pela regra e pelo seletor que o axe dá ao elemento. Esse seletor pode usar atributos e muda quando um atributo sai: no [menu do DSGov](../exemplos/menu-dsgov.md), tirar `role="treeitem"` mudou o seletor de 21 links que continuavam com alvo de toque pequeno. Por isso cada item guarda também a posição do elemento na página (`xpath`). Basta um dos dois bater para ser o mesmo item. A trava avisa quando reconheceu pela posição, e o relatório mostra o seletor antigo em `seletor_na_base`; gerar a linha de base de novo atualiza o seletor e mantém dono e prazo.
 
 ### 2. Rode a trava
 
@@ -96,20 +101,21 @@ Rodar de novo **preserva** dono, prazo e nota de quem já tinha. Itens novos ent
 BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run trava
 ```
 
-Saída real, numa página com dois problemas graves:
+Saída real, com `ROTAS=/com-falha.html`, uma página de teste com dois problemas graves:
 
 ```text
-Trava de acessibilidade: 1 rota(s), 0 estado(s) de roteiro, 1 execucao(oes), modos normal, telas celular.
+Trava de acessibilidade: 1 rota(s), 0 estado(s) de roteiro, 4 execucao(oes), modos normal, cores-forcadas, texto-200, largura-320, telas celular.
 Trava em: impacto critical, serious, e sempre em meta-viewport. Regras: wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa.
 Ja existiam (na linha de base): 0.
+Capturas de tela: 4, em trava-capturas/.
 
 TRAVOU: 2 problema(s).
 Novo e grave:
-  /com-falha.html  button-name  #fechar  (critical; em celular/normal)
+  /com-falha.html  button-name  #fechar  (critical; em celular/normal, celular/cores-forcadas, celular/texto-200, 320px/largura-320)
     Buttons must have discernible text
     https://dequeuniversity.com/rules/axe/4.11/button-name?application=playwright
 Novo e grave:
-  /com-falha.html  image-alt  #foto  (critical; em celular/normal)
+  /com-falha.html  image-alt  #foto  (critical; em celular/normal, celular/cores-forcadas, celular/texto-200, 320px/largura-320)
     Images must have alternative text
     https://dequeuniversity.com/rules/axe/4.11/image-alt?application=playwright
 
@@ -122,7 +128,7 @@ Relatorio completo em trava-relatorio.json.
 BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run limpar-resolvidos
 ```
 
-Tira só o que foi consertado nas rotas e modos testados. Não adiciona nada. Se o problema voltar depois, ele volta como **novo** e trava.
+Tira só o que foi procurado de novo em cada tela e modo onde aparecia, com a mesma regra rodando, e não apareceu. Se o axe não conseguiu decidir, o item fica. Não adiciona nada. Se o problema voltar depois, ele volta como **novo** e trava.
 
 ### 4. Registre exceções, se precisar
 
@@ -139,6 +145,8 @@ Copie `excecoes.exemplo.json` para `excecoes.json`. Cada exceção cobre uma reg
 }
 ```
 
+A exceção vale para o seletor escrito nela, o mesmo que a trava mostra na saída. Diferente da linha de base, ela não reconhece o elemento pela posição: se o seletor mudar, ela deixa de cobrir e aparece como sem uso, e o problema é tratado como se ela não existisse (trava, se não estiver na linha de base). Atualize o seletor; quem aprovou decide se a exceção continua.
+
 ### 5. Teste estados com um roteiro
 
 Menu aberto, modal e erro de formulário só existem depois de uma ação. Descreva o caminho em `roteiro.json` (veja `roteiro.exemplo.json`) e passe `ROTEIRO=roteiro.json`:
@@ -154,7 +162,9 @@ Menu aberto, modal e erro de formulário só existem depois de uma ação. Descr
 }
 ```
 
-Ações: `clicar` (seletor), `esperar` (seletor visível), `teclar` (tecla, como `Tab` ou `Escape`) e `preencher` (seletor, com `texto`). Se uma ação falhar, a trava dá erro de configuração em vez de testar a tela errada. A ideia vem das `actions` do [pa11y-ci](https://github.com/pa11y/pa11y-ci).
+Ações: `clicar` (seletor), `esperar` (seletor visível), `teclar` (tecla, como `Tab` ou `Escape`) e `preencher` (seletor, com `texto`). A ideia vem das `actions` do [pa11y-ci](https://github.com/pa11y/pa11y-ci).
+
+**Termine sempre com `esperar`**, num elemento que só existe no estado pedido: o menu aberto, a mensagem de erro. Sem isso, um clique que não fez nada passaria despercebido e a trava olharia a tela errada. Se uma ação falhar, a trava dá erro de configuração em vez de testar a tela errada.
 
 ### 6. Ligue no CI
 
@@ -169,16 +179,16 @@ Para a trava valer de verdade:
 
 | Variável | Padrão | Para quê |
 |---|---|---|
-| `BASE_URL` | obrigatória | Endereço do site |
+| `BASE_URL` | obrigatória | Endereço do site, com `http://` ou `https://`. Pode ter subpasta: `https://exemplo.github.io/projeto/` mais a rota `/contato` testa `/projeto/contato` |
 | `ROTAS` | `/` (vazio se houver `ROTEIRO`) | Rotas separadas por vírgula |
 | `ROTEIRO` | nenhum | Arquivo com estados que exigem interação |
 | `MODOS` | `normal,cores-forcadas,texto-200,largura-320` | Quais modos rodar |
 | `TELAS` | `celular` | `celular` (390 px), `computador` (1280 px) ou os dois |
 | `IMPACTO` | `critical,serious` | Impactos que travam: `critical`, `serious`, `moderate`, `minor` |
 | `SEMPRE_TRAVA` | `meta-viewport` | Regras do axe que travam qualquer que seja o impacto |
-| `REGRAS` | `wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa` | Tags do axe. Some `best-practice` para incluir boas práticas |
+| `REGRAS` | `wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa` | Tags do axe. Some `best-practice` para incluir boas práticas. Tag que o axe não conhece dá erro; lista que não roda nenhuma regra também. No axe 4.11, `wcag21a` só tem uma regra experimental, que não roda: o critério dela (2.5.3, nome visível dentro do nome acessível) fica para o teste à mão |
 | `ESPERA` | `load` | Quando a página está pronta: `load`, `domcontentloaded` ou `networkidle` |
-| `ESTRITO` | desligado | `1` faz a linha de base sem dono ou com prazo vencido travar |
+| `ESTRITO` | desligado | `1` faz a linha de base sem dono ou com prazo vencido travar. Confere o arquivo inteiro, não só as rotas desta execução: quando um prazo vence, toda mudança trava até alguém renovar o prazo ou consertar |
 | `LINHA_DE_BASE` | `linha-de-base.json` | Arquivo da linha de base |
 | `EXCECOES` | `excecoes.json` | Arquivo de exceções |
 | `RELATORIO` | `trava-relatorio.json` | Relatório completo em JSON |
@@ -189,8 +199,8 @@ Para a trava valer de verdade:
 
 ## Limites que você precisa saber
 
-- **A linha de base reconhece cada problema pelo seletor do axe.** Se o time renomeia uma classe ou um id, o problema antigo aparece como novo. Prefira ids estáveis nos componentes, ou regenere a base na mesma mudança (dono e prazo são preservados).
-- **`texto-200` é uma aproximação.** Ela dobra a fonte base; texto definido em `px` não cresce. A verificação de verdade é ampliar só o texto no navegador e olhar ([ficha 1](../fichas/01-teste-de-teclado.md)).
+- **A linha de base reconhece cada problema pelo seletor do axe ou pela posição do elemento na página (`xpath`)**, e anota em que telas e modos ele aparece. Se os dois mudam na mesma mudança (um id renomeado, ou o elemento muda de classe e de lugar), o problema antigo aparece como novo e trava; gerar a base de novo não leva o dono e o prazo para ele. O contrário também acontece: um elemento novo, com o mesmo problema, exatamente no lugar de um antigo que saiu, conta como o antigo. A trava avisa sempre que reconhece um item pela posição. Prefira ids estáveis nos componentes.
+- **`texto-200` imita o zoom só no texto do Firefox, mas não é ele.** Dobra o tamanho de fonte de cada elemento, inclusive em px, e não entra em iframe nem em shadow DOM fechado. A verificação de verdade continua sendo ampliar só o texto no navegador e olhar ([ficha 1](../fichas/01-teste-de-teclado.md)).
 - **`cores-forcadas` depende da captura.** O axe mede a página, mas ícone que some e foco que desaparece só aparecem na imagem.
 - **Roda no Chromium.** A emulação de cores forçadas não foi conferida em Firefox e WebKit.
 
@@ -210,4 +220,4 @@ Para a trava valer de verdade:
 npm test
 ```
 
-Sobe páginas locais com barreiras plantadas e confere 37 casos: o básico, contraste, zoom bloqueado, os dois limites conhecidos (foco invisível e ordem de foco), roteiro de menu aberto, linha de base (gerar, preservar dono, prazo vencido, modo estrito), conserto e regressão, exceções (válida, vencida, incompleta, data impossível, sem uso), revisão à mão (rolagem e texto cortado), capturas, resumo do GitHub e erros de configuração que nunca podem virar verde.
+Sobe páginas locais com barreiras plantadas e confere 55 casos: o básico, contraste, zoom bloqueado, os dois limites conhecidos (foco invisível e ordem de foco), roteiro de menu aberto (também com o texto ampliado), linha de base (gerar, preservar dono e telas, prazo vencido, dono em branco, modo estrito), conserto e regressão, conserto que muda o seletor (o padrão do menu do DSGov), "resolvido" só com reteste completo, problema conhecido que aparece em tela ou modo novo, exceções (válida, vencida, incompleta, data impossível, rota sem barra, sem uso), revisão à mão (rolagem e texto cortado), capturas, resumo do GitHub, endereço com subpasta e erros de configuração que nunca podem virar verde (inclusive tag que o axe não conhece e lista de tags que não roda nenhuma regra).

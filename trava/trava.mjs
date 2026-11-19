@@ -42,6 +42,17 @@ function dataValida(texto) {
   return dt.getUTCFullYear() === a && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
+// Junta o caminho de BASE_URL com a rota: http://x/app/ mais /contato da http://x/app/contato.
+// new URL('/contato', 'http://x/app/') descartaria o /app e testaria outro endereco.
+function montarUrl(baseUrl, rota) {
+  const u = new URL(baseUrl);
+  const r = new URL(rota, 'http://rota.invalid');
+  u.pathname = u.pathname.replace(/\/+$/, '') + r.pathname;
+  u.search = r.search;
+  u.hash = r.hash;
+  return u.toString();
+}
+
 function lerConfig(env, argv) {
   const cfg = {
     baseUrl: env.BASE_URL,
@@ -64,11 +75,14 @@ function lerConfig(env, argv) {
     limpar: argv.includes('--limpar-resolvidos'),
   };
   if (!cfg.baseUrl) throw new ErroDeConfig('defina BASE_URL, por exemplo BASE_URL=http://localhost:4321');
+  let base;
   try {
-    new URL(cfg.baseUrl);
+    base = new URL(cfg.baseUrl);
   } catch {
     throw new ErroDeConfig(`BASE_URL invalida: "${cfg.baseUrl}".`);
   }
+  if (!['http:', 'https:'].includes(base.protocol)) throw new ErroDeConfig(`BASE_URL precisa comecar com http:// ou https:// (veio "${cfg.baseUrl}").`);
+  if (base.search || base.hash) throw new ErroDeConfig('BASE_URL nao pode ter ? nem #. Ponha isso na rota.');
   if (!cfg.rotas.length && !cfg.arqRoteiro) throw new ErroDeConfig('ROTAS esta vazia. Sem rota, nada e testado e o verde seria falso.');
   for (const r of cfg.rotas) if (!r.startsWith('/')) throw new ErroDeConfig(`rota "${r}" precisa comecar com /.`);
   if (!cfg.modos.length) throw new ErroDeConfig('MODOS esta vazio.');
@@ -116,6 +130,9 @@ function lerRoteiro(arquivo) {
       if (tipos.length !== 1) throw new ErroDeConfig(`${arquivo}, item ${i + 1}, acao ${j + 1}: use exatamente uma de ${ACOES.join(', ')}.`);
       if (tipos[0] === 'preencher' && typeof a.texto !== 'string') throw new ErroDeConfig(`${arquivo}, item ${i + 1}, acao ${j + 1}: "preencher" precisa de "texto".`);
     });
+    if (!('esperar' in e.acoes[e.acoes.length - 1])) {
+      throw new ErroDeConfig(`${arquivo}, item ${i + 1}: termine com "esperar" num elemento que so existe no estado pedido (o menu aberto, a mensagem de erro). Sem isso, um clique que nao fez nada passaria despercebido e o teste olharia a tela errada.`);
+    }
   });
   const vistos = new Set();
   for (const e of lista) {
@@ -136,12 +153,39 @@ async function executarAcoes(pagina, alvo) {
       if (tipo === 'teclar') await pagina.keyboard.press(valor);
       if (tipo === 'preencher') await pagina.fill(valor, a.texto, { timeout: 10000 });
     } catch (e) {
-      throw new ErroDeConfig(`roteiro "${alvo.estado}" em ${alvo.rota}: nao conseguiu ${tipo} "${valor}" (${e.message.split('\n')[0]}).`);
+      const dica = alvo.modo === 'texto-200' ? ' So falha com o texto ampliado? O problema pode ser do site: o alvo ficou coberto ou fora da tela.' : '';
+      throw new ErroDeConfig(`roteiro "${alvo.estado}" em ${alvo.rota} (${alvo.tela}/${alvo.modo}): nao conseguiu ${tipo} "${valor}" (${e.message.split('\n')[0]}).${dica}`);
     }
   }
 }
 
 const chave = (x) => `${x.rota}|${x.estado || ''}|${x.regra}|${x.seletor}`;
+const chaveXpath = (x) => `${x.rota}|${x.estado || ''}|${x.regra}|${x.xpath}`;
+const lugar = (rota, estado, onde) => `${rota}|${estado || ''}|${onde}`;
+const alvoDoNo = (no) => no.target.flat(Infinity).join(' ');
+const xpathDoNo = (no) => (Array.isArray(no.xpath) ? no.xpath.flat(Infinity).join(' ') : '');
+
+// Casa cada achado com no maximo um item da linha de base, e cada item com no maximo um achado:
+// primeiro pelo seletor; depois, entre os que sobraram, pelo xpath (a posicao na pagina).
+// O seletor do axe muda quando um atributo muda: no menu do DSGov, tirar role="treeitem" mudou
+// o seletor de 21 links que continuavam com alvo de toque pequeno. Sem o xpath, o conserto
+// apareceria como 21 "resolvidos" falsos e 21 "novos" falsos, e travaria.
+function casarComBase(achados, base) {
+  const porSeletor = new Map(base.map((b) => [chave(b), b]));
+  const porXpath = new Map(base.filter((b) => b.xpath).map((b) => [chaveXpath(b), b]));
+  const casado = new Map();
+  const usados = new Set();
+  for (const a of achados) {
+    const b = porSeletor.get(chave(a));
+    if (b && !usados.has(b)) { casado.set(a, b); usados.add(b); }
+  }
+  for (const a of achados) {
+    if (casado.has(a) || !a.xpath) continue;
+    const b = porXpath.get(chaveXpath(a));
+    if (b && !usados.has(b)) { casado.set(a, b); usados.add(b); }
+  }
+  return { casado, usados };
+}
 const rotulo = (x) => `${x.rota}${x.estado ? ` [${x.estado}]` : ''}`;
 const pior = (a, b) => (IMPACTOS.indexOf(a) >= IMPACTOS.indexOf(b) ? a : b);
 
@@ -158,6 +202,52 @@ function combinacoes(cfg, roteiro) {
     }
   }
   return out;
+}
+
+// Imita o zoom so do texto (no Firefox: Exibir, Zoom, Zoom so no texto). Cada elemento passa a ter
+// o dobro do tamanho de fonte que tinha, inclusive texto em px e campos de formulario; caixa com
+// largura ou altura em px nao cresce. Roda de novo depois do roteiro: o que ja foi ampliado nao dobra
+// outra vez, e o que o roteiro criou tambem e ampliado. Antes de dobrar, anota o que ja cortava texto
+// sem ampliacao, para o sinal de "texto cortado" acusar so o que a ampliacao causou.
+async function ampliarTexto(pagina) {
+  await pagina.evaluate(() => {
+    const estado = (window.__travaTexto200 ||= { original: new WeakMap() });
+    estado.coletar = () => {
+      const todos = [];
+      const visitar = (raiz) => {
+        for (const el of raiz.querySelectorAll('*')) {
+          todos.push(el);
+          if (el.shadowRoot) visitar(el.shadowRoot);
+        }
+      };
+      visitar(document);
+      return todos;
+    };
+    estado.corta = (el) => {
+      if (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'TITLE'].includes(el.tagName)) return false;
+      const cs = getComputedStyle(el);
+      const escondeX = ['hidden', 'clip'].includes(cs.overflowX);
+      const escondeY = ['hidden', 'clip'].includes(cs.overflowY);
+      if (!escondeX && !escondeY) return false;
+      if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+      if (el.clientWidth <= 1 || el.clientHeight <= 1) return false; // texto so para leitor de tela
+      if (cs.clip !== 'auto' && cs.clip !== '') return false;
+      if (!el.textContent || !el.textContent.trim()) return false;
+      return (escondeX && el.scrollWidth > el.clientWidth + 1) || (escondeY && el.scrollHeight > el.clientHeight + 1);
+    };
+    const todos = estado.coletar();
+    const por = (el, px) => el.style && el.style.setProperty('font-size', `${px}px`, 'important');
+    const novos = todos.filter((el) => !estado.original.has(el));
+    // 1. Volta o que ja foi ampliado ao tamanho original. Assim os novos sao medidos como eram.
+    for (const el of todos) if (estado.original.has(el)) por(el, estado.original.get(el));
+    const tamanhos = novos.map((el) => parseFloat(getComputedStyle(el).fontSize));
+    estado.cortavaAntes = new WeakSet(todos.filter(estado.corta));
+    // 2. Dobra.
+    novos.forEach((el, i) => {
+      if (Number.isFinite(tamanhos[i])) estado.original.set(el, tamanhos[i]);
+    });
+    for (const el of todos) if (estado.original.has(el)) por(el, estado.original.get(el) * 2);
+  });
 }
 
 // Sinais geometricos que o axe nao mede. Viram itens "para revisar a mao", nunca travam.
@@ -197,24 +287,26 @@ async function sinaisDeLayout(pagina, modo) {
       }
     }
     if (modoAtual === 'texto-200') {
-      const cortados = [...document.body.querySelectorAll('*')].filter((el) => {
-        const temTexto = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
-        if (!temTexto) return false;
-        const cs = getComputedStyle(el);
-        if (cs.visibility === 'hidden' || cs.display === 'none') return false;
-        if (el.clientWidth <= 1 || el.clientHeight <= 1) return false; // texto so para leitor de tela
-        if (cs.clip !== 'auto' && cs.clip !== '') return false;
-        const escondeX = ['hidden', 'clip'].includes(cs.overflowX);
-        const escondeY = ['hidden', 'clip'].includes(cs.overflowY);
-        return (escondeX && el.scrollWidth > el.clientWidth + 1) || (escondeY && el.scrollHeight > el.clientHeight + 1);
-      });
-      if (cortados.length) {
+      const t = window.__travaTexto200;
+      if (!t) {
         sinais.push({
-          sinal: 'texto-cortado',
+          sinal: 'texto-nao-ampliado',
           criterio: 'WCAG 1.4.4 Resize Text',
-          descricao: `Com o texto ampliado, ${cortados.length} elemento(s) cortam o proprio conteudo (overflow escondido).`,
-          seletores: cortados.slice(0, 5).map(seletor),
+          descricao: 'A pagina recarregou depois da ampliacao e foi medida sem ela. Amplie o texto a mao (ficha 1).',
+          seletores: [],
         });
+      } else {
+        // So o que passou a cortar com a ampliacao; e, entre caixas uma dentro da outra, a mais interna.
+        const cortados = t.coletar().filter((el) => t.corta(el) && !t.cortavaAntes.has(el));
+        const internos = cortados.filter((el) => !cortados.some((o) => o !== el && el.contains(o)));
+        if (internos.length) {
+          sinais.push({
+            sinal: 'texto-cortado',
+            criterio: 'WCAG 1.4.4 Resize Text',
+            descricao: `Com o texto em 200%, ${internos.length} elemento(s) passam a cortar o texto que tem dentro (overflow escondido).`,
+            seletores: internos.slice(0, 5).map(seletor),
+          });
+        }
       }
     }
     return sinais;
@@ -224,11 +316,19 @@ async function sinaisDeLayout(pagina, modo) {
 async function auditar(cfg, roteiro) {
   let chromium;
   let AxeBuilder;
+  let axe;
   try {
     ({ chromium } = await import('playwright'));
     ({ AxeBuilder } = await import('@axe-core/playwright'));
+    axe = (await import('axe-core')).default;
   } catch (e) {
     throw new ErroDeConfig(`dependencias ausentes (${e.message}). Rode npm install e npx playwright install chromium.`);
+  }
+  // Tag com erro de digitacao seleciona zero regras e o axe nao reclama. Aqui reclama, antes de abrir o navegador.
+  const conhecidas = new Set(axe.getRules().flatMap((r) => r.tags));
+  const desconhecidas = cfg.regras.filter((t) => !conhecidas.has(t));
+  if (desconhecidas.length) {
+    throw new ErroDeConfig(`REGRAS: ${desconhecidas.map((t) => `"${t}"`).join(', ')} nao e tag do axe-core ${axe.version}. Confira o nome (wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa, best-practice).`);
   }
   if (cfg.capturas && cfg.capturas !== '0') mkdirSync(cfg.capturas, { recursive: true });
   const navegador = await chromium.launch();
@@ -236,6 +336,10 @@ async function auditar(cfg, roteiro) {
   const revisar = [];
   const capturas = [];
   const execucoes = [];
+  // Por rota, estado, tela e modo: quais regras rodaram e quais nos o axe nao decidiu.
+  // E o que permite dizer "resolvido" so quando o item foi procurado de novo de verdade.
+  const rodadas = new Map();
+  let versaoAxe = '';
   try {
     for (const c of combinacoes(cfg, roteiro)) {
       const viewport = c.modo === 'largura-320' ? { width: 320, height: 640 } : TELAS[c.tela];
@@ -245,7 +349,7 @@ async function auditar(cfg, roteiro) {
       });
       try {
         const pagina = await contexto.newPage();
-        const url = new URL(c.rota, cfg.baseUrl).toString();
+        const url = montarUrl(cfg.baseUrl, c.rota);
         let resp;
         try {
           resp = await pagina.goto(url, { waitUntil: cfg.espera, timeout: 45000 });
@@ -253,12 +357,28 @@ async function auditar(cfg, roteiro) {
           throw new ErroDeConfig(`nao abriu ${url} (${e.message.split('\n')[0]}).`);
         }
         if (!resp || !resp.ok()) throw new ErroDeConfig(`${url} respondeu ${resp ? resp.status() : 'sem resposta'}.`);
-        if (c.acoes.length) await executarAcoes(pagina, c);
-        if (c.modo === 'texto-200') {
-          // Aproximacao: dobra o tamanho base da fonte. Texto em px nao cresce; veja o README.
-          await pagina.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+        // No texto-200, o roteiro roda com o texto ja ampliado, como faria quem usa zoom.
+        if (c.modo === 'texto-200') await ampliarTexto(pagina);
+        if (c.acoes.length) {
+          await executarAcoes(pagina, c);
+          if (c.modo === 'texto-200') await ampliarTexto(pagina);
         }
-        const resultado = await new AxeBuilder({ page: pagina }).withTags(cfg.regras).analyze();
+        // options() troca todas as opcoes de uma vez: tem que vir antes de withTags, senao as tags se perdem.
+        const resultado = await new AxeBuilder({ page: pagina }).options({ xpath: true }).withTags(cfg.regras).analyze();
+        const rodaram = [...resultado.passes, ...resultado.violations, ...resultado.incomplete, ...resultado.inapplicable];
+        const foraDasTags = rodaram.filter((r) => !r.tags.some((t) => cfg.regras.includes(t))).map((r) => r.id);
+        if (foraDasTags.length) throw new Error(`o axe rodou regras fora de REGRAS (${foraDasTags.slice(0, 5).join(', ')}). O resultado nao vale.`);
+        if (!versaoAxe) {
+          versaoAxe = resultado.testEngine.version;
+          // Tag que existe mas so tem regra experimental (no axe 4.11, wcag21a sozinha) tambem nao testa nada.
+          if (!rodaram.length) throw new ErroDeConfig(`REGRAS=${cfg.regras.join(',')} nao rodou nenhuma regra do axe-core ${versaoAxe}. Nada foi testado e o verde seria falso.`);
+        }
+        rodadas.set(lugar(c.rota, c.estado, `${c.tela}/${c.modo}`), {
+          regras: new Set(rodaram.map((r) => r.id)),
+          incertos: new Set(resultado.incomplete.flatMap((inc) => inc.nodes.flatMap((n) => [
+            `${inc.id}|css|${alvoDoNo(n)}`, ...(xpathDoNo(n) ? [`${inc.id}|xpath|${xpathDoNo(n)}`] : []),
+          ]))),
+        });
         execucoes.push({ rota: c.rota, estado: c.estado, tela: c.tela, modo: c.modo, url });
         for (const v of resultado.violations) {
           for (const no of v.nodes) {
@@ -266,7 +386,8 @@ async function auditar(cfg, roteiro) {
               rota: c.rota,
               estado: c.estado,
               regra: v.id,
-              seletor: no.target.flat(Infinity).join(' '),
+              seletor: alvoDoNo(no),
+              xpath: xpathDoNo(no),
               impacto: no.impact || v.impact || 'minor',
               ajuda: v.helpUrl,
               descricao: v.help,
@@ -285,7 +406,7 @@ async function auditar(cfg, roteiro) {
         for (const inc of resultado.incomplete) {
           revisar.push({
             rota: c.rota, estado: c.estado, onde: `${c.tela}/${c.modo}`, tipo: 'axe-incompleto', regra: inc.id,
-            descricao: `${inc.help} (o axe nao conseguiu decidir)`, seletores: inc.nodes.slice(0, 5).map((n) => n.target.flat(Infinity).join(' ')),
+            descricao: `${inc.help} (o axe nao conseguiu decidir)`, seletores: inc.nodes.slice(0, 5).map(alvoDoNo),
             total: inc.nodes.length, ajuda: inc.helpUrl,
           });
         }
@@ -306,13 +427,15 @@ async function auditar(cfg, roteiro) {
   } finally {
     await navegador.close();
   }
-  return { achados: [...achados.values()], revisar, capturas, execucoes };
+  return { achados: [...achados.values()], revisar, capturas, execucoes, rodadas, versaoAxe };
 }
 
 function validarExcecao(e) {
   const faltando = ['regra', 'seletor', 'motivo', 'aprovado_por', 'validade'].filter((c) => typeof e[c] !== 'string' || !e[c].trim());
   if (faltando.length) return `faltam campos: ${faltando.join(', ')}`;
   if (!dataValida(e.validade)) return `validade "${e.validade}" nao e uma data real no formato AAAA-MM-DD`;
+  if (e.rota !== undefined && (typeof e.rota !== 'string' || !e.rota.startsWith('/'))) return `rota "${e.rota}" precisa comecar com /`;
+  if (e.estado !== undefined && typeof e.estado !== 'string') return 'estado precisa ser texto';
   return null;
 }
 
@@ -323,8 +446,9 @@ function pendenciasDaBase(base, hoje) {
   const out = [];
   for (const b of base) {
     const problemas = [];
-    if (!b.dono || b.dono === PENDENTE) problemas.push('sem dono');
-    if (!b.prazo || b.prazo === PENDENTE) problemas.push('sem prazo');
+    const vazio = (v) => typeof v !== 'string' || !v.trim() || v.trim() === PENDENTE;
+    if (vazio(b.dono)) problemas.push('sem dono');
+    if (vazio(b.prazo)) problemas.push('sem prazo');
     else if (!dataValida(b.prazo)) problemas.push(`prazo invalido "${b.prazo}"`);
     else if (b.prazo < hoje) problemas.push(`prazo vencido em ${b.prazo}`);
     if (problemas.length) out.push({ item: b, problemas });
@@ -332,21 +456,29 @@ function pendenciasDaBase(base, hoje) {
   return out;
 }
 
-function noEscopo(b, execucoes) {
-  // So da para dizer "resolvido" se a rota e algum dos modos onde o item aparecia rodaram agora.
-  const rodou = execucoes.filter((x) => x.rota === b.rota && x.estado === (b.estado || ''));
-  if (!rodou.length) return false;
-  if (!Array.isArray(b.onde) || !b.onde.length) return true;
-  return b.onde.some((o) => rodou.some((x) => `${x.tela}/${x.modo}` === o));
+// So da para dizer "resolvido" quando o item foi procurado de novo em cada tela e modo onde
+// aparecia, com a mesma regra rodando, e o axe decidiu. "Nao consegui decidir" nao e conserto.
+function retestadoPorInteiro(b, rodadas) {
+  const prefixo = lugar(b.rota, b.estado, '');
+  const lugares = Array.isArray(b.onde) && b.onde.length
+    ? b.onde
+    : [...rodadas.keys()].filter((k) => k.startsWith(prefixo)).map((k) => k.slice(prefixo.length));
+  return lugares.length > 0 && lugares.every((o) => {
+    const r = rodadas.get(prefixo + o);
+    return Boolean(r) && r.regras.has(b.regra) && !r.incertos.has(`${b.regra}|css|${b.seletor}`)
+      && !(b.xpath && r.incertos.has(`${b.regra}|xpath|${b.xpath}`));
+  });
 }
 
-function classificar(cfg, achados, base, excecoes, execucoes) {
+function classificar(cfg, achados, base, excecoes, rodadas) {
   const travas = [];
   const avisos = [];
   const jaExistiam = [];
   const excecoesUsadas = [];
   const usadas = new Set();
-  const baseIdx = new Map(base.map((b) => [chave(b), b]));
+  // Casa todos os achados, inclusive os cobertos por excecao: o que tem excecao nao some da base.
+  const { casado, usados } = casarComBase(achados, base);
+  let mudaramDeSeletor = 0;
 
   excecoes.forEach((e, i) => {
     const problema = validarExcecao(e);
@@ -365,13 +497,19 @@ function classificar(cfg, achados, base, excecoes, execucoes) {
       else excecoesUsadas.push({ item, excecao: exc });
       continue;
     }
-    const naBase = baseIdx.get(chave(item));
+    const naBase = casado.get(item);
     if (naBase) {
       const antes = IMPACTOS.includes(naBase.impacto) ? naBase.impacto : item.impacto;
-      if (IMPACTOS.indexOf(item.impacto) > IMPACTOS.indexOf(antes) && (cfg.impacto.includes(item.impacto) || cfg.sempreTrava.includes(item.regra))) {
+      const grave = cfg.impacto.includes(item.impacto) || cfg.sempreTrava.includes(item.regra);
+      // O problema conhecido so e conhecido onde foi registrado. Em tela ou modo novo, e regressao.
+      const lugaresNovos = Array.isArray(naBase.onde) && naBase.onde.length ? item.onde.filter((o) => !naBase.onde.includes(o)) : [];
+      if (grave && IMPACTOS.indexOf(item.impacto) > IMPACTOS.indexOf(antes)) {
         travas.push({ tipo: 'piorou', item, antes });
+      } else if (grave && lugaresNovos.length) {
+        travas.push({ tipo: 'espalhou', item, lugaresNovos, lugaresAntes: naBase.onde });
       } else {
-        jaExistiam.push({ ...item, dono: naBase.dono, prazo: naBase.prazo });
+        if (naBase.seletor !== item.seletor) mudaramDeSeletor += 1;
+        jaExistiam.push({ ...item, dono: naBase.dono, prazo: naBase.prazo, ...(naBase.seletor !== item.seletor ? { seletor_na_base: naBase.seletor } : {}) });
       }
       continue;
     }
@@ -383,12 +521,11 @@ function classificar(cfg, achados, base, excecoes, execucoes) {
     if (!usadas.has(e)) avisos.push({ tipo: 'excecao-sem-uso', excecao: e, motivo: 'nao cobre nenhum problema encontrado agora; pode sair do arquivo.' });
   }
 
-  const encontrados = new Set(achados.map(chave));
-  const resolvidos = base.filter((b) => !encontrados.has(chave(b)) && noEscopo(b, execucoes));
+  const resolvidos = base.filter((b) => !usados.has(b) && retestadoPorInteiro(b, rodadas));
   const pendencias = pendenciasDaBase(base, cfg.hoje);
   if (cfg.estrito) for (const p of pendencias) travas.push({ tipo: 'base-sem-governanca', item: p.item, motivo: p.problemas.join(', ') });
 
-  return { travas, avisos, jaExistiam, excecoesUsadas, resolvidos, pendencias };
+  return { travas, avisos, jaExistiam, excecoesUsadas, resolvidos, pendencias, mudaramDeSeletor };
 }
 
 const fmt = (i) => `  ${rotulo(i)}  ${i.regra}  ${i.seletor}  (${i.impacto}; em ${(i.onde || []).join(', ')})`;
@@ -398,9 +535,11 @@ function imprimir(cfg, r, revisar, capturas, nExec, nRoteiro) {
   L.push(`Trava de acessibilidade: ${cfg.rotas.length} rota(s), ${nRoteiro} estado(s) de roteiro, ${nExec} execucao(oes), modos ${cfg.modos.join(', ')}, telas ${cfg.telas.join(', ')}.`);
   L.push(`Trava em: impacto ${cfg.impacto.join(', ')}${cfg.sempreTrava.length ? `, e sempre em ${cfg.sempreTrava.join(', ')}` : ''}. Regras: ${cfg.regras.join(', ')}.`);
   L.push(`Ja existiam (na linha de base): ${r.jaExistiam.length}.`);
+  if (r.mudaramDeSeletor) L.push(`  ${r.mudaramDeSeletor} deles mudaram de seletor e foram reconhecidos pela posicao na pagina (xpath). Gere a linha de base de novo para atualizar: dono e prazo ficam.`);
   if (r.pendencias.length) {
     L.push(`Linha de base com pendencia de dono ou prazo: ${r.pendencias.length}${cfg.estrito ? ' (ESTRITO=1: trava)' : ' (use ESTRITO=1 para travar)'}.`);
     for (const p of r.pendencias.slice(0, 10)) L.push(`  ${rotulo(p.item)}  ${p.item.regra}  ${p.item.seletor}: ${p.problemas.join(', ')}`);
+    if (r.pendencias.length > 10) L.push(`  ... e mais ${r.pendencias.length - 10} no relatorio.`);
   }
   if (r.excecoesUsadas.length) {
     L.push(`Excecoes em vigor: ${r.excecoesUsadas.length}.`);
@@ -412,7 +551,8 @@ function imprimir(cfg, r, revisar, capturas, nExec, nRoteiro) {
   }
   if (r.resolvidos.length) {
     L.push(`Resolvidos (rode --limpar-resolvidos para tirar da linha de base): ${r.resolvidos.length}.`);
-    for (const x of r.resolvidos) L.push(`  ${rotulo(x)}  ${x.regra}  ${x.seletor}`);
+    for (const x of r.resolvidos.slice(0, 15)) L.push(`  ${rotulo(x)}  ${x.regra}  ${x.seletor}`);
+    if (r.resolvidos.length > 15) L.push(`  ... e mais ${r.resolvidos.length - 15} no relatorio.`);
   }
   if (revisar.length) {
     L.push(`Para revisar a mao (nao trava): ${revisar.length}.`);
@@ -425,6 +565,7 @@ function imprimir(cfg, r, revisar, capturas, nExec, nRoteiro) {
     for (const t of r.travas) {
       if (t.tipo === 'nova') L.push(`Novo e grave:\n${fmt(t.item)}\n    ${t.item.descricao}\n    ${t.item.ajuda}`);
       if (t.tipo === 'piorou') L.push(`Piorou (era ${t.antes} na linha de base):\n${fmt(t.item)}`);
+      if (t.tipo === 'espalhou') L.push(`Apareceu em tela ou modo novo (${t.lugaresNovos.join(', ')}; na linha de base, so em ${t.lugaresAntes.join(', ')}):\n${fmt(t.item)}\n    Se a linha de base foi gerada sem essa tela ou modo, gere de novo: dono e prazo ficam.`);
       if (t.tipo === 'excecao-vencida') L.push(`Excecao vencida em ${t.excecao.validade}:\n${fmt(t.item)}`);
       if (t.tipo === 'excecao-invalida') L.push(`Excecao invalida (${t.motivo}): ${JSON.stringify(t.excecao)}`);
       if (t.tipo === 'base-sem-governanca') L.push(`Linha de base sem dono ou prazo valido (${t.motivo}):\n  ${rotulo(t.item)}  ${t.item.regra}  ${t.item.seletor}`);
@@ -465,18 +606,27 @@ function resumoMarkdown(cfg, r, revisar) {
   return linhas.join('\n');
 }
 
-function gerarBase(cfg, achados, baseAtual, execucoes) {
-  const antiga = new Map(baseAtual.map((b) => [chave(b), b]));
+function gerarBase(achados, baseAtual, rodadas) {
+  // Item reconhecido pelo xpath ganha o seletor de agora e guarda dono, prazo e nota.
+  const { casado, usados } = casarComBase(achados, baseAtual);
   const nova = achados.map((a) => {
-    const velho = antiga.get(chave(a));
+    const velho = casado.get(a);
+    // Tela ou modo antigo que nao rodou agora continua anotado: nao da para saber se o problema saiu de la.
+    const antigos = (Array.isArray(velho?.onde) ? velho.onde : []).filter((o) => !a.onde.includes(o) && !rodadas.has(lugar(a.rota, a.estado, o)));
     return {
-      rota: a.rota, ...(a.estado ? { estado: a.estado } : {}), regra: a.regra, seletor: a.seletor, impacto: a.impacto, onde: a.onde,
+      rota: a.rota, ...(a.estado ? { estado: a.estado } : {}), regra: a.regra, seletor: a.seletor, ...(a.xpath ? { xpath: a.xpath } : {}),
+      impacto: a.impacto, onde: [...a.onde, ...antigos],
       dono: velho?.dono || PENDENTE, prazo: velho?.prazo || PENDENTE, ...(velho?.nota ? { nota: velho.nota } : {}),
     };
   });
-  // Itens fora do escopo desta execucao continuam como estavam.
-  const foraDoEscopo = baseAtual.filter((b) => !noEscopo(b, execucoes) && !nova.some((n) => chave(n) === chave(b)));
-  return { lista: [...nova, ...foraDoEscopo], preservados: nova.filter((n) => antiga.has(chave(n))).length, novos: nova.filter((n) => !antiga.has(chave(n))).length };
+  // O que sumiu sem ser procurado de novo em todo lugar continua como estava.
+  const naoRetestados = baseAtual.filter((b) => !usados.has(b) && !retestadoPorInteiro(b, rodadas));
+  return {
+    lista: [...nova, ...naoRetestados],
+    mantidos: achados.filter((a) => casado.has(a)).length,
+    novos: achados.filter((a) => !casado.has(a)).length,
+    naoRetestados: naoRetestados.length,
+  };
 }
 
 async function principal() {
@@ -485,27 +635,31 @@ async function principal() {
   const excecoes = lerLista(cfg.arqExc, 'excecoes', []);
   const roteiro = lerRoteiro(cfg.arqRoteiro);
   if (!cfg.rotas.length && !roteiro.length) throw new ErroDeConfig('nada para testar: ROTAS vazia e ROTEIRO sem estados.');
-  const { achados, revisar, capturas, execucoes } = await auditar(cfg, roteiro);
+  const { achados, revisar, capturas, execucoes, rodadas, versaoAxe } = await auditar(cfg, roteiro);
+  const avisoNaoRetestados = (n) => `${n} item(ns) sumiram sem ser procurados de novo em toda tela e modo onde apareciam (ou a regra nao rodou, ou o axe nao decidiu). Ficam na linha de base ate um teste completo.`;
 
   if (cfg.gerar) {
-    const g = gerarBase(cfg, achados, base, execucoes);
+    const g = gerarBase(achados, base, rodadas);
     writeFileSync(cfg.arqBase, JSON.stringify(g.lista, null, 2) + '\n');
     console.log(`Linha de base gravada em ${cfg.arqBase}: ${g.lista.length} problema(s) que ja existiam.`);
-    console.log(`${g.preservados} mantiveram dono e prazo; ${g.novos} entraram com "${PENDENTE}".`);
+    console.log(`${g.mantidos} mantiveram dono e prazo; ${g.novos} entraram com "${PENDENTE}".`);
+    if (g.naoRetestados) console.log(avisoNaoRetestados(g.naoRetestados));
     console.log('Cada item e uma tarefa: preencha dono e prazo antes de commitar.');
     return 0;
   }
   if (cfg.limpar) {
-    const encontrados = new Set(achados.map(chave));
-    const fica = base.filter((b) => encontrados.has(chave(b)) || !noEscopo(b, execucoes));
+    const { usados } = casarComBase(achados, base);
+    const fica = base.filter((b) => usados.has(b) || !retestadoPorInteiro(b, rodadas));
+    const naoRetestados = fica.filter((b) => !usados.has(b)).length;
     writeFileSync(cfg.arqBase, JSON.stringify(fica, null, 2) + '\n');
     console.log(`Linha de base: ${base.length - fica.length} resolvido(s) removido(s); ${fica.length} continuam. Nada novo foi adicionado.`);
+    if (naoRetestados) console.log(avisoNaoRetestados(naoRetestados));
     return 0;
   }
 
-  const r = classificar(cfg, achados, base, excecoes, execucoes);
+  const r = classificar(cfg, achados, base, excecoes, rodadas);
   const relatorio = {
-    data: cfg.hoje, base_url: cfg.baseUrl, rotas: cfg.rotas, modos: cfg.modos, telas: cfg.telas,
+    data: cfg.hoje, axe_core: versaoAxe, base_url: cfg.baseUrl, rotas: cfg.rotas, modos: cfg.modos, telas: cfg.telas,
     impacto_que_trava: cfg.impacto, sempre_trava: cfg.sempreTrava, roteiro: roteiro.map((e) => ({ rota: e.rota, estado: e.estado })), regras: cfg.regras, execucoes, travou: r.travas.length > 0,
     travas: r.travas, avisos: r.avisos, ja_existiam: r.jaExistiam, pendencias_da_base: r.pendencias,
     excecoes_usadas: r.excecoesUsadas, resolvidos: r.resolvidos, para_revisar: revisar, capturas,

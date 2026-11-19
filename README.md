@@ -11,11 +11,11 @@ O relatório acha a falha. A biblioteca evita que ela volte. Este kit traz o que
 - **Quem desenvolve** e quer um teste automático que trava o que é novo e grave, sem parar o time inteiro no primeiro dia.
 - **Quem prioriza** e precisa de uma proposta pequena e honesta para levar adiante.
 
-## Comece em 5 minutos
+## Comece agora
 
-**Sem instalar nada:** abra a [ficha 1](fichas/01-teste-de-teclado.md), escolha uma tarefa do seu produto e faça a tarefa só com o teclado. Anote onde o foco some.
+**Sem instalar nada, em 5 minutos:** abra a [ficha 1](fichas/01-teste-de-teclado.md), escolha uma tarefa do seu produto e faça a tarefa só com o teclado. Anote onde o foco some.
 
-**Com o código à mão:** rode a trava no seu site local.
+**Com o código à mão:** rode a trava no seu site local. Precisa de Node 20 ou mais novo; a primeira instalação baixa um Chromium.
 
 ```sh
 cd trava
@@ -54,7 +54,7 @@ As fichas são Markdown simples: dá para copiar para o Notion, a wiki, o Figma 
 - **O que a máquina não consegue julgar** vai para uma lista de revisão à mão, com capturas de tela.
 - **Configuração errada ou site fora do ar** dá erro. Nunca vira verde.
 
-A trava tem teste próprio: 37 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
+A trava tem teste próprio: 55 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
 
 ## O que este kit não é
 

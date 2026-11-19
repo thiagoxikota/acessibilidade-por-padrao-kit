@@ -35,20 +35,43 @@ Esta é a [ficha 4](../fichas/04-trava-preenchida.md) aplicada ao menu.
 |---|---|
 | **Qual teste** | O axe roda na página do exemplo do menu, a cada mudança. |
 | **O que trava** | Falha nova de impacto crítico ou sério. A mudança não entra. |
-| **O que já existia** | Os 22 nós de antes entram na linha de base, com dono e prazo. Não travam, mas não somem. |
+| **O que já existia** | Os 22 nós de antes entram na linha de base, com dono e prazo. Não travam, mas não somem. Na cópia sem CSS entram também 28 alvos de toque pequenos (veja abaixo). |
 | **Exceção** | Se o time decidir manter os papéis de árvore até a próxima versão, registra quem aprovou, por quê e até quando. |
 | **Quem responde** | Quem mantém o componente de menu. |
 
-Com a [trava](../trava/README.md), isso fica assim:
+Com a [trava](../trava/README.md), dá para refazer o caso com os arquivos reais de antes e depois, guardados no repositório público de dados. Os números nos comentários são os que a trava 2.1 dá.
+
+No primeiro terminal, na pasta onde está o kit:
 
 ```sh
-BASE_URL=http://localhost:4321 ROTAS=/exemplos/menu-push.html npm run linha-de-base
-# preencher dono e prazo dos 22 itens em linha-de-base.json
-BASE_URL=http://localhost:4321 ROTAS=/exemplos/menu-push.html npm run trava
-# depois do conserto: os 22 aparecem como resolvidos
-BASE_URL=http://localhost:4321 ROTAS=/exemplos/menu-push.html npm run limpar-resolvidos
-# se alguém reintroduzir o role="treeitem", a falha volta como nova e trava
+git clone https://github.com/thiagoxikota/bold-dsgov-a11y-dataset
+mkdir bold-dsgov-a11y-dataset/site
+cp bold-dsgov-a11y-dataset/data/piloto-2026-07/before/menu-push.html bold-dsgov-a11y-dataset/site/
+npx --yes serve@14.2.4 bold-dsgov-a11y-dataset/site -l 4321
 ```
+
+Deixe esse rodando. No segundo terminal, na mesma pasta, com a trava já instalada (veja [Como usar](../trava/README.md#como-usar)):
+
+```sh
+cd acessibilidade-por-padrao-kit/trava
+export BASE_URL=http://localhost:4321 ROTAS=/menu-push.html
+P=../../bold-dsgov-a11y-dataset
+
+npm run trava               # trava: 50 problemas
+npm run linha-de-base       # grava os 50 em linha-de-base.json; preencha dono e prazo
+npm run trava               # passa: os 50 já existiam
+
+cp $P/data/piloto-2026-07/after/menu-push.html $P/site/   # o conserto
+npm run trava               # passa: 22 resolvidos; 28 continuam
+npm run limpar-resolvidos   # tira os 22 da linha de base
+
+cp $P/data/piloto-2026-07/before/menu-push.html $P/site/  # alguém devolve o role="treeitem"
+npm run trava               # trava: 22 problemas novos
+```
+
+**Por que 50 e não 22.** A cópia não carrega o CSS do design system. Sem ele, os links do menu ficam do tamanho do texto, e a trava acusa também 28 alvos de toque abaixo de 24 px (`target-size`, impacto sério, WCAG 2.5.8). Esse número é da cópia sem estilo: o tamanho real dos alvos depende do CSS do DSGov, que ficou fora do recorte. Os 22 de estrutura aparecem nos quatro modos; os 28 de toque, em três (com o texto em 200%, os links crescem e passam).
+
+**O que o caso ensinou à própria trava.** Tirar `role="treeitem"` muda o seletor que o axe dá a 21 desses links. Na versão 2.0, a trava achava que eram 21 problemas resolvidos e 21 novos, e travava o próprio conserto. Agora ela reconhece o item também pela posição na página e avisa que o seletor mudou.
 
 ## 4. O que ainda falta
 
@@ -61,7 +84,7 @@ Os quatro passos de uma correção que chega em quem usa:
 
 ## Leitura honesta dos limites
 
-- A auditoria de 30/07 foi feita numa cópia do exemplo, sem o CSS do design system. Ela isola a estrutura do HTML; contraste ficou fora desse recorte.
+- A auditoria de 30/07 foi feita numa cópia do exemplo, sem o CSS do design system. Ela isola a estrutura do HTML; contraste e tamanho dos alvos de toque ficaram fora desse recorte.
 - O axe aponta falhas de estrutura. Ele não substitui ouvir o menu num leitor de tela nem testar com quem usa um.
 - "Corrigido no código" não é "corrigido para quem usa". O passo 4 depende de cada produto.
 

@@ -43,6 +43,7 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 | [GitLab, guia de design para contribuições](https://docs.gitlab.com/development/contributing/design/) | Estados: erro, repouso, carregando, foco, hover, selecionado, desabilitado; e os que dependem de dados, como vazio | Ficha 2 |
 | [Playwright, testes de acessibilidade](https://playwright.dev/docs/accessibility-testing) | Falha conhecida guardada por uma "impressão digital", não pelo HTML inteiro | Linha de base da trava |
 | [pa11y-ci](https://github.com/pa11y/pa11y-ci) | Ações antes do teste: clicar, preencher, esperar | Roteiro da trava |
+| [Siteimprove Alfa, regra SIA-R65](https://alfa.siteimprove.com/rules/sia-r65) | Existe teste automático de foco visível fora do axe | Ficha 1 e CHANGELOG |
 | [Lighthouse, como a nota é calculada](https://developer.chrome.com/docs/lighthouse/accessibility/scoring) | A nota é média ponderada; as auditorias manuais não entram nela | README da trava |
 | [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) | Alternativa para quem já mede desempenho | README da trava |
 | [Guidepup](https://github.com/guidepup/guidepup) | Leitor de tela automatizado. Não testado com este kit | README da trava |

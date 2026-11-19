@@ -4,13 +4,21 @@
 <style>
   body { margin: 0; font-size: 1rem; }
   #faixa { width: 600px; }
-  #cartao { height: 1.5rem; overflow: hidden; width: 200px; }
+  /* Cabem em 100% e cortam em 200%: caixa de altura fixa em px. */
+  #cartao { height: 24px; overflow: hidden; width: 240px; }
+  #selo { font-size: 14px; height: 20px; overflow: hidden; width: 160px; }
+  #caixa { height: 24px; overflow: hidden; width: 240px; }
+  /* Ja corta em 100%, de proposito: nao e efeito da ampliacao. */
+  #carrossel { overflow: hidden; white-space: nowrap; width: 200px; }
 </style></head>
 <body>
 <main>
   <h1>Planos</h1>
   <p id="faixa">Esta faixa tem largura fixa e obriga a rolar para o lado em tela estreita.</p>
-  <p id="cartao">Este cartao tem altura fixa e corta o texto quando a letra cresce bastante.</p>
+  <p id="cartao">Plano anual com desconto</p>
+  <p id="selo">Mais vendido</p>
+  <div id="caixa"><span>Frete gratis</span></div>
+  <div id="carrossel">Oferta um, oferta dois, oferta tres, oferta quatro, oferta cinco</div>
 </main>
 </body>
 </html>
