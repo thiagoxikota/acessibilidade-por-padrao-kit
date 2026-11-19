@@ -1,0 +1,22 @@
+name: Teste da trava
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  teste:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: trava
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test

@@ -1,0 +1,18 @@
+{
+  "name": "trava-de-acessibilidade",
+  "version": "1.0.0",
+  "description": "Trava de acessibilidade para CI: axe em tres modos de tela, linha de base e excecao com validade.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "trava": "node trava.mjs",
+    "linha-de-base": "node trava.mjs --gerar-linha-de-base",
+    "test": "node teste/rodar.mjs"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "playwright": "1.61.0"
+  }
+}

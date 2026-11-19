@@ -1,0 +1,10 @@
+[
+  {
+    "rota": "/",
+    "regra": "image-alt",
+    "seletor": "#banner-campanha",
+    "motivo": "Banner antigo sai do ar na troca de campanha.",
+    "aprovado_por": "Nome de quem aprovou",
+    "validade": "2026-12-31"
+  }
+]

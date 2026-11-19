@@ -1,0 +1,48 @@
+# Copie para .github/workflows/acessibilidade.yml no seu projeto.
+# Este exemplo supoe o kit copiado para a pasta acessibilidade/ do seu repositorio.
+# Ajuste o passo que sobe o site e as rotas.
+name: Acessibilidade
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  trava:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Suba o seu site aqui. Exemplo para um site estatico ja gerado em dist/:
+      - name: Gerar e servir o site
+        run: |
+          npm ci
+          npm run build
+          npx --yes serve@14.2.4 dist -l 4321 &
+          npx --yes wait-on@8.0.1 http://localhost:4321
+
+      - name: Instalar a trava
+        working-directory: acessibilidade/trava
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Rodar a trava
+        working-directory: acessibilidade/trava
+        env:
+          BASE_URL: http://localhost:4321
+          ROTAS: /,/contato
+        run: npm run trava
+
+      - name: Guardar o relatorio
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-acessibilidade
+          path: acessibilidade/trava/trava-relatorio.json
