@@ -8,7 +8,7 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 |---|---|---|
 | [WCAG 2.2](https://www.w3.org/TR/WCAG22/) | A norma. Níveis A e AA | Fichas 2 e 4, trava |
 | [1.4.3 Contraste mínimo](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) | 4,5:1 para texto; 3:1 para texto grande (18 pt, ou 14 pt em negrito: cerca de 24 px e 18,5 px); não arredondar; exceções para componente inativo e logotipo | Ficha 2 |
-| [1.4.4 Redimensionar texto](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html) | Texto a 200% sem perder conteúdo nem função | Ficha 1, modo `texto-200` |
+| [1.4.4 Redimensionar texto](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html) | Texto a 200% sem perder conteúdo nem função | Fichas 1 e 2, modo `texto-200` |
 | [1.4.10 Reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html) | 320 px de largura, o mesmo que 1280 px com zoom de 400% | Ficha 2, modo `largura-320` |
 | [1.4.11 Contraste de não texto](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html) | 3:1 para partes de componentes, estados e gráficos que informam | Ficha 2 |
 | [2.4.3 Ordem do foco](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html) | A ordem do foco preserva sentido e operação | Ficha 1 |
@@ -35,7 +35,7 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 
 | Fonte | O que sustenta | Onde |
 |---|---|---|
-| [axe-core](https://github.com/dequelabs/axe-core) e a [descrição das regras](https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md) | Motor da trava. Impacto de cada regra: `color-contrast`, `link-name` e `target-size` são "serious"; `meta-viewport` é "moderate" | Trava |
+| [axe-core](https://github.com/dequelabs/axe-core) e a [descrição das regras na versão 4.11.4](https://github.com/dequelabs/axe-core/blob/v4.11.4/doc/rule-descriptions.md) | Motor da trava. Impacto de cada regra: `color-contrast`, `link-name` e `target-size` são "serious"; `meta-viewport` é "moderate" | Trava |
 | [Deque, cobertura de teste automático (2021)](https://www.deque.com/automated-accessibility-testing-coverage/) | 57,38% dos problemas, contados por quantidade, em mais de 13 mil páginas. Número do fabricante do axe | README da trava |
 | [Accessibility Insights, FastPass](https://accessibilityinsights.io/docs/web/getstarted/fastpass/) | Menos de cinco minutos; teste automático mais teste assistido de Tab, com ajuda visual | Fichas 1 e 3 |
 | [Primer, checklist para design](https://primer.style/accessibility/tools-and-resources/checklists/designer-checklist/) | Foco visível em todo elemento interativo; ordem do foco anotada; 4,5:1 e 3:1; alvo de 24 por 24 px; títulos anotados | Ficha 2 |
@@ -55,7 +55,7 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 |---|---|---|
 | [Apple, ligar e desligar o VoiceOver](https://support.apple.com/guide/voiceover/turn-voiceover-on-or-off-vo2682/mac) | Command + F5 | Ficha 1 |
 | [WebAIM, VoiceOver](https://webaim.org/articles/voiceover/) | Teclas VO (Control + Option); VO + seta para a direita lê o próximo item; VO + U abre o rotor; Control para a leitura | Ficha 1 |
-| [Guia do NVDA](https://download.nvaccess.org/documentation/userGuide.html) | Insert é a tecla NVDA; NVDA + Espaço alterna os modos; NVDA + Q sai | Ficha 1 |
+| [Guia do NVDA](https://download.nvaccess.org/documentation/userGuide.html) | Insert é a tecla NVDA; NVDA + Espaço alterna os modos; NVDA + Q e depois Enter sai | Ficha 1 |
 | [WebAIM, NVDA](https://webaim.org/articles/nvda/) | H títulos, D regiões, K links, F campos, B botões; Ctrl para a leitura | Ficha 1 |
 | [Apple, ajustes avançados do Safari](https://support.apple.com/guide/safari/advanced-ibrw1075/mac) | A opção de usar o Tab para destacar cada item da página | Ficha 1 |
 
@@ -66,7 +66,7 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 | [Dados do piloto de 30/07/2026](https://github.com/thiagoxikota/bold-dsgov-a11y-dataset/tree/main/data/piloto-2026-07) | 22 nós com falha antes, 0 depois; o código, o diff e os relatórios |
 | [Chamado 261 no GitLab do DSGov](https://gitlab.com/govbr-ds/govbr-ds/-/work_items/261) | Aberto em 31/07/2026 |
 | [Merge request 221 da govbr-ds-core](https://gitlab.com/govbr-ds/bibliotecas/javascript/govbr-ds-core/-/merge_requests/221) | Aberto em 01/09/2026 e incorporado em 13/10/2026 |
-| [Versões de @govbr-ds/core no npm](https://www.npmjs.com/package/@govbr-ds/core?activeTab=versions) | Última versão publicada em 06/05/2026, antes da correção |
+| [Versões de @govbr-ds/core no npm](https://www.npmjs.com/package/@govbr-ds/core?activeTab=versions) | Última versão publicada em 06/05/2026 (4.0.0-next.11, uma pré-versão), antes da correção; a última estável, 3.7.0, é de 19/11/2025 |
 | [Dados abertos do estudo](https://github.com/thiagoxikota/bold-dsgov-a11y-dataset) | 277 registros; contraste é a regra mais frequente (128) |
 
 Achou uma fonte que mudou ou saiu do ar? Abra uma issue.

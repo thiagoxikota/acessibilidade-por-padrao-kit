@@ -54,7 +54,7 @@ As fichas são Markdown simples: dá para copiar para o Notion, a wiki, o Figma 
 - **O que a máquina não consegue julgar** vai para uma lista de revisão à mão, com capturas de tela.
 - **Configuração errada ou site fora do ar** dá erro. Nunca vira verde.
 
-A trava tem teste próprio: 55 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
+A trava tem teste próprio: 94 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
 
 ## O que este kit não é
 

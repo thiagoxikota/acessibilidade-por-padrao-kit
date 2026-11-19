@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fonte gravada no style</title>
+<style>#caixa { width: 300px; height: 50px; overflow: hidden; line-height: 1; }</style></head>
+<body>
+<main>
+  <h1>Planos</h1>
+  <button id="aumentar" type="button">Aumentar</button>
+  <div id="caixa"><span id="texto" style="font-size: 16px !important">Mais vendido</span></div>
+  <p id="pronto" hidden>Pronto.</p>
+</main>
+<!-- O clique grava no style, com !important, 32px: o mesmo tamanho que a trava escreve ao dobrar os
+     16px. A 200%, o texto tem que ir a 64px e cortar na caixa de 50px. -->
+<script>
+  document.getElementById('aumentar').addEventListener('click', function () {
+    document.getElementById('texto').style.setProperty('font-size', '32px', 'important');
+    document.getElementById('pronto').hidden = false;
+  });
+</script>
+</body>
+</html>

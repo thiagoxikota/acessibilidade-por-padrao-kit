@@ -34,7 +34,7 @@ Use as anotações do [Annotation Toolkit do GitHub](https://github.com/github/a
 - [ ] Texto alternativo de cada imagem que informa. Imagem decorativa marcada como decorativa.
 - [ ] Nome de cada botão que só tem ícone.
 - [ ] Avisos que aparecem sozinhos (erro, carregando, salvo) e como são anunciados.
-- [ ] Como a tela fica com 320 px de largura e com o texto em 200% ([WCAG 1.4.10](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html)).
+- [ ] Como a tela fica com 320 px de largura ([WCAG 1.4.10](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html)) e com o texto em 200% ([WCAG 1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html)).
 
 ## Exemplo da documentação
 

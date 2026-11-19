@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lista recriada e bloco clonado</title>
+<!-- O clique recria a lista (innerHTML +=) e clona um bloco (cloneNode). Com o texto em 200% (32 px),
+     so #primeiro corta (caixa de 24 px). #segundo, #novo, #modelo e #copia tem 50 px e so cortariam
+     se a fonte dobrasse duas vezes nos elementos recriados ou clonados. Textos curtos: nem a 4x eles
+     quebram linha em 300 px, entao so a altura decide. -->
+<style>
+  ul { list-style: none; padding: 0; margin: 0; }
+  .linha { font-size: 16px; line-height: 1; width: 300px; overflow: hidden; }
+  .baixa { height: 24px; }
+  .alta { height: 50px; }
+</style></head>
+<body>
+<main>
+  <h1>Enderecos</h1>
+  <button id="adicionar" type="button">Adicionar endereco</button>
+  <ul id="lista">
+    <li id="primeiro" class="linha baixa">Rua A, 1</li>
+    <li id="segundo" class="linha alta">Rua B, 2</li>
+  </ul>
+  <div id="blocos"><div id="modelo" class="linha alta">Entrega</div></div>
+  <p id="pronto" hidden>Endereco adicionado.</p>
+</main>
+<script>
+  document.getElementById('adicionar').addEventListener('click', function () {
+    document.getElementById('lista').innerHTML += '<li id="novo" class="linha alta">Rua C, 3</li>';
+    var copia = document.getElementById('modelo').cloneNode(true);
+    copia.id = 'copia';
+    document.getElementById('blocos').appendChild(copia);
+    document.getElementById('pronto').hidden = false;
+  });
+</script>
+</body>
+</html>

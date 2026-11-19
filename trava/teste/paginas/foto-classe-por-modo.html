@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Foto que troca de classe em cores forcadas</title></head>
+<body>
+<main>
+  <h1>Cadastro</h1>
+  <img class="foto-normal" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">
+  <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Logotipo">
+  <img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Selo de seguranca">
+</main>
+<script>
+  // Em cores forcadas o site troca a classe da foto, e o axe passa a dar outro seletor ao mesmo elemento.
+  if (matchMedia('(forced-colors: active)').matches) document.querySelector('.foto-normal').className = 'foto-contraste';
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Aviso com outra classe em cores forcadas</title>
+<style>
+  .aviso, .aviso-cf { color: #aaaaaa; background: #ffffff; }
+  @media (forced-colors: active) {
+    .aviso-cf { forced-color-adjust: none; background: linear-gradient(#ffffff, #f4f4f4); }
+  }
+</style></head>
+<body>
+<main>
+  <h1>Cadastro</h1>
+  <p class="aviso">Texto cinza claro em fundo branco.</p>
+</main>
+<footer><p>Rodape do cadastro.</p></footer>
+<!-- Em cores forcadas, o aviso ganha outra classe e um fundo em gradiente: o axe nao decide o contraste
+     dele, e o seletor de agora e outro que o da linha de base. O segundo paragrafo evita o seletor "p". -->
+<script>
+  if (matchMedia('(forced-colors: active)').matches) document.querySelector('.aviso').className = 'aviso-cf';
+</script>
+</body>
+</html>

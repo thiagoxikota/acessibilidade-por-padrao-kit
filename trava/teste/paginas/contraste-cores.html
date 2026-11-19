@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Contraste incerto so em cores forcadas</title>
+<!-- Contraste baixo no modo normal. Em cores forcadas a pagina mantem as proprias cores sobre um
+     degrade, e o axe nao consegue decidir. -->
+<style>
+  #aviso { color: #aaaaaa; background: #ffffff; }
+  @media (forced-colors: active) {
+    #aviso { forced-color-adjust: none; background: linear-gradient(#ffffff, #f4f4f4); }
+  }
+</style></head>
+<body>
+<main>
+  <h1>Cadastro</h1>
+  <p id="aviso">Texto cinza claro em fundo branco.</p>
+</main>
+</body>
+</html>

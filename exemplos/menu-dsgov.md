@@ -23,7 +23,7 @@ Por que isso importa: quem copia o exemplo leva a falha para o próprio produto.
 | 31/07/2026 | Chamado público aberto no GitLab do DSGov, com a correção pronta. |
 | 01/09/2026 | Paula Coelho, do time do DSGov, abre a correção na biblioteca. Ela vai além da proposta: também move o `aria-expanded` para o botão que abre o menu. |
 | 13/10/2026 | A correção do time do DSGov entra no código da biblioteca, 74 dias depois do aviso. |
-| 19/11/2026 | Nenhuma versão publicada traz a correção ainda. A última saiu em 06/05/2026. |
+| 19/11/2026 | Nenhuma versão publicada traz a correção ainda. A última, uma pré-versão (4.0.0-next.11), saiu em 06/05/2026; a última estável, 3.7.0, é de 19/11/2025. |
 
 Corrigir na biblioteca é o passo que mais rende: o conserto chega a todo produto que usa o componente. Mas só chega quando sai numa versão e cada produto atualiza.
 
@@ -39,9 +39,9 @@ Esta é a [ficha 4](../fichas/04-trava-preenchida.md) aplicada ao menu.
 | **Exceção** | Se o time decidir manter os papéis de árvore até a próxima versão, registra quem aprovou, por quê e até quando. |
 | **Quem responde** | Quem mantém o componente de menu. |
 
-Com a [trava](../trava/README.md), dá para refazer o caso com os arquivos reais de antes e depois, guardados no repositório público de dados. Os números nos comentários são os que a trava 2.1 dá.
+Com a [trava](../trava/README.md), dá para refazer o caso com os arquivos reais de antes e depois, guardados no repositório público de dados. Os números nos comentários são os que a trava 2.2 dá.
 
-No primeiro terminal, na pasta onde está o kit:
+No primeiro terminal, na pasta que contém a pasta `acessibilidade-por-padrao-kit` (um nível acima dela):
 
 ```sh
 git clone https://github.com/thiagoxikota/bold-dsgov-a11y-dataset
@@ -67,11 +67,14 @@ npm run limpar-resolvidos   # tira os 22 da linha de base
 
 cp $P/data/piloto-2026-07/before/menu-push.html $P/site/  # alguém devolve o role="treeitem"
 npm run trava               # trava: 22 problemas novos
+
+rm -r linha-de-base.json trava-relatorio.json trava-capturas   # a linha de base do caso não serve para o seu site
+unset BASE_URL ROTAS P
 ```
 
-**Por que 50 e não 22.** A cópia não carrega o CSS do design system. Sem ele, os links do menu ficam do tamanho do texto, e a trava acusa também 28 alvos de toque abaixo de 24 px (`target-size`, impacto sério, WCAG 2.5.8). Esse número é da cópia sem estilo: o tamanho real dos alvos depende do CSS do DSGov, que ficou fora do recorte. Os 22 de estrutura aparecem nos quatro modos; os 28 de toque, em três (com o texto em 200%, os links crescem e passam).
+**Por que 50 e não 22.** A cópia não carrega o CSS do design system. Sem ele, os links do menu ficam do tamanho do texto, e a trava acusa também 28 alvos de toque abaixo de 24 px (`target-size`, impacto sério, WCAG 2.5.8). Esse número é da cópia sem estilo: o tamanho real dos alvos depende do CSS do DSGov, que ficou fora do recorte. Os 22 de estrutura aparecem nos quatro modos. Dos 28 de toque, 27 são links do menu, em três modos (com o texto em 200%, eles crescem e passam), e 1 é o botão Fechar o menu, nos quatro.
 
-**O que o caso ensinou à própria trava.** Tirar `role="treeitem"` muda o seletor que o axe dá a 21 desses links. Na versão 2.0, a trava achava que eram 21 problemas resolvidos e 21 novos, e travava o próprio conserto. Agora ela reconhece o item também pela posição na página e avisa que o seletor mudou.
+**O que o caso ensinou à própria trava.** Tirar `role="treeitem"` muda o seletor que o axe dá a 21 desses links. Na versão 2.0, a trava achava que eram 21 problemas resolvidos e 21 novos, e travava o próprio conserto. Agora ela reconhece o item também pela posição na página, avisa que o seletor mudou, e o `limpar-resolvidos` grava o seletor novo, com o mesmo dono e prazo.
 
 ## 4. O que ainda falta
 

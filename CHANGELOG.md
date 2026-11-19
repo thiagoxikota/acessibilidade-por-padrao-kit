@@ -1,5 +1,36 @@
 # Mudanças
 
+## 2.2.0, 19/11/2026
+
+Terceira revisão do código, de novo à procura de verde falso. Cada correção da trava abaixo vem com um caso de teste que falha na 2.1.
+
+### Trava
+
+- **Em shadow DOM, um problema novo passava como um antigo já consertado.** A posição que o axe dá ao elemento (`xpath`) começa na raiz do componente, e dois componentes iguais tinham a mesma posição: um botão sem nome num componente novo era tomado pelo item antigo de outro, e a trava saía verde. Agora, dentro de shadow DOM, só o seletor reconhece o item.
+- **Mudar o seletor não tira mais um item de baixo de uma exceção vencida.** A exceção vale também pelo seletor que a linha de base guardou para o mesmo elemento, e a trava avisa para trocar pelo seletor de agora. Limpar ou gerar a linha de base de novo não apaga esse seletor antigo enquanto a exceção o usar.
+- **O mesmo elemento com um seletor em cada modo**, ou com o seletor mudado só num modo, era reconhecido só uma vez: o outro item virava "resolvido" sem ter sido consertado, e o reconhecido acusava "apareceu em modo novo". Agora a linha de base é casada em cada tela e modo: cada item vale onde foi registrado, e o impacto de agora é comparado com o do item que vale ali. Quando gerar a linha de base de novo junta esses itens num só, fica o prazo mais curto, com o dono dele, e a trava avisa se os donos ou os prazos eram diferentes.
+- **`SEMPRE_TRAVA` é conferido.** Regra com erro de digitação, fora das tags de `REGRAS`, ou experimental ou obsoleta sem a etiqueta dela em `REGRAS` sumia calada, e o "sempre" era falso. Agora é erro de configuração. Com `experimental` em `REGRAS`, a regra experimental roda e trava.
+- **`ESTRITO` aceita só `1` ou `0`.** `ESTRITO=true` desligava o modo estrito sem avisar.
+- **Com `ESTRITO=1`, o prazo vencido de um item não trava mais o próprio conserto.**
+- **Item da linha de base da versão 1, sem a lista de modos, só sai como resolvido numa execução com os quatro modos.** Antes, uma execução só com `normal` já o dava como consertado.
+- **Gerar a linha de base de novo não apaga a tela ou o modo onde o axe não decidiu.** Antes, ele saía da lista, e a trava acusava "apareceu em modo novo" numa página que não tinha mudado.
+- **`limpar-resolvidos` grava o seletor e o xpath de agora** nos itens reconhecidos pela posição, com o mesmo dono e prazo.
+- **`texto-200` amplia também a fonte que o roteiro troca.** Antes, um elemento que mudava de classe ou de tamanho no `style` durante o roteiro ficava medido com o tamanho antigo.
+- **No `texto-200`, o elemento que o roteiro clona ou recria (`innerHTML`) não dobra duas vezes.** Ele copiava o tamanho já ampliado e ia a 4 vezes: a caixa que cabia era acusada, e a que cortava de verdade saía da lista.
+- **Rota que começa com `//` dá erro**, também no roteiro e na exceção, e também quando vira `//` depois que o navegador apaga tab e quebra de linha (`/`, tab, `/exemplo`). O navegador lia `//exemplo` como outro endereço, e a trava testava a página errada. `ROTAS` escrita uma por linha, em vez de vírgula, também dá erro: virava uma rota só.
+- **Roteiro com campo desconhecido ou seletor vazio dá erro.** `{ "espera": "#menu" }` passava calado.
+- **Prazo fora do formato** diz qual é o certo (AAAA-MM-DD).
+- **Teste próprio** de 55 para 94 casos, e ele não herda mais a configuração da trava do terminal de quem o roda.
+
+### Fichas e textos
+
+- **Ficha 1:** cita a regra SIA-R65 do Siteimprove Alfa, diz o que é o axe e corrige a saída do NVDA (NVDA + Q e depois Enter).
+- **Ficha 2:** o texto em 200% cita o WCAG 1.4.4, ao lado do 1.4.10.
+- **Ficha 4:** sem jargão de programação.
+- **Caso do menu do DSGov:** a pasta certa para começar, a limpeza no fim (a linha de base do caso não serve para o seu site), a conta exata dos 28 alvos de toque e as duas versões do pacote no npm (a pré-versão de 06/05/2026 e a última estável).
+- **Manual da trava:** exceção e roteiro aparecem como lista, como o arquivo pede; o formato do prazo está escrito; e os limites novos (shadow DOM, linha de base da versão 1, campo de formulário no `texto-200`) estão descritos.
+- **Links das regras do axe** apontam para a versão 4.11.4, a que a trava usa.
+
 ## 2.1.0, 19/11/2026
 
 Segunda revisão do código e das fontes, à procura de verde falso. A versão 2.0 ainda deixava alguns caminhos abertos.
@@ -9,11 +40,11 @@ Segunda revisão do código e das fontes, à procura de verde falso. A versão 2
 - **Tag de regra com erro de digitação dá erro.** `REGRAS=wcag2aa-typo` selecionava zero regras e passava. Agora a trava confere se o axe conhece cada tag e dá erro se nenhuma regra rodou.
 - **Versão do axe fixa e no relatório.** O axe-core fica em 4.11.4 e a versão sai no relatório, para comparar execuções.
 - **"Resolvido" só com reteste completo.** Um item só sai da linha de base quando foi procurado de novo em cada tela e modo onde aparecia, com a mesma regra rodando. Resultado que o axe não conseguiu decidir não conta como conserto.
-- **Problema conhecido em tela ou modo novo trava.** Antes, ele se escondia na linha de base.
+- **Problema conhecido e grave em tela ou modo novo trava.** Antes, ele se escondia na linha de base.
 - **Roteiro termina em `esperar`.** Sem confirmar o estado, um clique que não fez nada deixava a trava olhar a tela errada.
 - **`texto-200` imita o zoom só no texto.** Dobra o tamanho de fonte de cada elemento, inclusive em px, e já vale durante o roteiro. O sinal de texto cortado acha texto dentro de outro elemento e ignora a caixa que já cortava sem ampliar.
-- **`BASE_URL` com subpasta funciona.** Antes, `https://exemplo.github.io/projeto/` testava a raiz do domínio. Endereço sem `http://` dá erro.
-- **Exceção com rota sem `/` e dono só com espaços** passam a ser apontados.
+- **`BASE_URL` com subpasta funciona.** Antes, `https://exemplo.github.io/projeto/` testava a raiz do domínio. Endereço sem `http://` ou `https://` dá erro.
+- **Exceção com rota sem `/`** e **item da linha de base com dono só de espaços** passam a ser apontados.
 - **Conserto que muda o seletor não trava mais o próprio conserto.** O axe identifica o elemento por um seletor que pode usar atributos. No menu do DSGov, tirar `role="treeitem"` mudou o seletor de 21 links que continuavam com alvo de toque pequeno: a trava os dava como resolvidos e, ao mesmo tempo, como novos, e travava o conserto. Agora a linha de base guarda também a posição do elemento na página (`xpath`), e o item é reconhecido por um ou por outro. Achado ao rodar o caso real de ponta a ponta.
 - **Listas longas na saída** avisam quantos itens ficaram de fora ("e mais N no relatório").
 - **Teste próprio** de 37 para 55 casos.

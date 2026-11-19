@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Componente com shadow DOM</title></head>
+<body>
+<main>
+  <h1>Cadastro</h1>
+  <!-- O botao #a ganhou nome. Um componente novo, #b, entrou com o mesmo defeito.
+       Dentro do shadow DOM, o xpath do axe e o mesmo nos dois: /button. -->
+  <x-botao id="a" rotulo="Fechar"></x-botao>
+  <section><h2>Compartilhar</h2><x-botao id="b"></x-botao></section>
+</main>
+<script>
+  customElements.define('x-botao', class extends HTMLElement {
+    connectedCallback() {
+      const sombra = this.attachShadow({ mode: 'open' });
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.textContent = this.getAttribute('rotulo') || '';
+      sombra.appendChild(botao);
+    }
+  });
+</script>
+</body>
+</html>

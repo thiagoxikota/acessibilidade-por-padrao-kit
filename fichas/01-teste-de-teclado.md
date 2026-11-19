@@ -34,7 +34,7 @@ Se o Tab pular links ou botões em qualquer navegador do Mac, confira o item 2 a
 |---|---|
 | Chego em tudo o que dá para clicar? | Item fora do alcance do teclado. Anote qual. |
 | Consigo sair de cada lugar? | Foco preso. Exceção: numa janela aberta, o foco fica dentro de propósito até o Esc. |
-| Vejo sempre onde o foco está? | Foco invisível ([WCAG 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html)). **O axe não verifica isso, e a trava deste kit também não.** |
+| Vejo sempre onde o foco está? | Foco invisível ([WCAG 2.4.7](https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html)). **O axe (o teste automático que a trava deste kit usa) não verifica isso, e a trava também não.** Outras ferramentas tentam, como a [regra SIA-R65 do Siteimprove Alfa](https://alfa.siteimprove.com/rules/sia-r65). |
 | O foco fica à vista, sem sumir atrás de cabeçalho fixo ou aviso de cookies? | Foco encoberto ([WCAG 2.4.11](https://www.w3.org/WAI/WCAG22/Understanding/focus-not-obscured-minimum.html)). |
 | A ordem faz sentido para a tarefa? | Ordem confusa ([WCAG 2.4.3](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html)). Não precisa ser idêntica à leitura visual, mas precisa preservar o sentido. |
 | O foco fica onde eu deixei? | Foco que pula sozinho. Anote em qual Tab. |
@@ -73,7 +73,7 @@ Não é teste completo. É para ouvir se os nomes fazem sentido.
 | **H, D, K, F, B** | Próximo título, região, link, campo, botão |
 | **Control** | Cala a fala |
 | **NVDA + Espaço** | Alterna entre navegar e preencher |
-| **NVDA + Q** | Sai |
+| **NVDA + Q**, depois **Enter** | Sai |
 
 **O que ouvir:** cada botão diz o que faz? Cada campo diz o próprio nome? Lista é anunciada como lista? Aberto, fechado e marcado são anunciados?
 
@@ -94,3 +94,4 @@ Para um teste formal, o governo britânico lista as combinações mínimas de le
 - W3C, [Easy Checks](https://www.w3.org/WAI/test-evaluate/preliminary/) e [padrões de teclado (APG)](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/)
 - Microsoft, [Accessibility Insights FastPass](https://accessibilityinsights.io/docs/web/getstarted/fastpass/)
 - WebAIM, [VoiceOver](https://webaim.org/articles/voiceover/) e [NVDA](https://webaim.org/articles/nvda/)
+- Siteimprove, [regra SIA-R65 do Alfa](https://alfa.siteimprove.com/rules/sia-r65): teste automático de foco visível, fora do axe

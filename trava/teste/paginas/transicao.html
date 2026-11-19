@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cartao com transicao</title>
+<!-- O cartao tem `transition: all`. Com o texto em 200%, #cabe (32 px numa caixa de 50 px) e #rolagem
+     (32 px numa caixa de 40 px que rola) cabem; #corta (32 px numa caixa de 24 px) corta de verdade.
+     Se a medida pegasse o valor de partida da transicao, a fonte iria a 64 px: #cabe seria acusado,
+     #rolagem passaria a rolar e o axe travaria (scrollable-region-focusable). -->
+<style>
+  .cartao { font-size: 16px; transition: all .2s; width: 300px; }
+  .linha { line-height: 1; }
+  #cabe { height: 50px; overflow: hidden; }
+  #corta { height: 24px; overflow: hidden; }
+  #rolagem { height: 40px; overflow: auto; }
+</style></head>
+<body>
+<main>
+  <h1>Planos</h1>
+  <button id="abrir" type="button">Ver detalhes</button>
+  <div class="cartao">
+    <div id="cabe" class="linha">Mais vendido</div>
+    <div id="corta" class="linha">Frete gratis</div>
+    <div id="rolagem" class="linha">Parcele</div>
+  </div>
+  <p id="pronto" hidden>Detalhes abertos.</p>
+</main>
+<script>
+  document.getElementById('abrir').addEventListener('click', function () {
+    setTimeout(function () { document.getElementById('pronto').hidden = false; }, 300);
+  });
+</script>
+</body>
+</html>

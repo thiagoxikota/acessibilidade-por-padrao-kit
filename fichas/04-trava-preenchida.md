@@ -39,6 +39,6 @@ A pasta [trava/](../trava/README.md) implementa essas regras:
 | **O que trava** | Falha nova de impacto `critical` ou `serious` no axe. Contraste baixo é `serious`, por isso entra. Zoom bloqueado trava sempre. |
 | **O que já existia** | `linha-de-base.json`, com `dono` e `prazo`. Com `ESTRITO=1`, falta de dono ou prazo vencido também trava. |
 | **Exceção** | `excecoes.json`, com `motivo`, `aprovado_por` e `validade`. Vencida, trava de novo. |
-| **"Não vai pro ar"** | Só vale se o check for **obrigatório** na branch e o deploy depender dele. |
+| **"Não vai pro ar"** | Só vale se o teste for **obrigatório** para a mudança entrar no código principal e se a publicação do site depender dele. |
 
 Verde quer dizer: a máquina não achou falha nova. O teste com gente continua.

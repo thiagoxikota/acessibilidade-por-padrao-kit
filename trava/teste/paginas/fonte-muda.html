@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fonte que muda no clique</title>
+<!-- O clique troca a classe e a fonte de #caixa passa de 16 px para 30 px, numa caixa de 40 px que corta.
+     Sem ampliacao, 30 px cabem. Com o texto em 200%, 60 px nao cabem.
+     #vizinha (16 px numa caixa de 40 px) e #propria (12 px no atributo style, numa caixa de 30 px) nao
+     mudam no clique e cabem com o texto em 200%. So cortariam se a fonte dobrasse duas vezes, ou se a
+     trava perdesse o tamanho que o proprio site pos no atributo style. -->
+<style>
+  .linha { line-height: 1; overflow: hidden; width: 300px; }
+  #caixa { font-size: 16px; height: 40px; }
+  #caixa.grande { font-size: 30px; }
+  #vizinha { font-size: 16px; height: 40px; }
+  #propria { height: 30px; }
+</style></head>
+<body>
+<main>
+  <h1>Planos</h1>
+  <button id="destacar" type="button">Ver destaque</button>
+  <div id="caixa" class="linha">Mais vendido</div>
+  <div id="vizinha" class="linha">Frete gratis</div>
+  <div id="propria" class="linha" style="font-size: 12px">Em 3 vezes</div>
+  <p id="pronto" hidden>Destaque aberto.</p>
+</main>
+<script>
+  document.getElementById('destacar').addEventListener('click', function () {
+    document.getElementById('caixa').classList.add('grande');
+    document.getElementById('pronto').hidden = false;
+  });
+</script>
+</body>
+</html>

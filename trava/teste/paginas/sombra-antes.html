@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Componente com shadow DOM</title></head>
+<body>
+<main>
+  <h1>Cadastro</h1>
+  <!-- Botao sem nome dentro do shadow DOM de um componente. -->
+  <x-botao id="a"></x-botao>
+</main>
+<script>
+  customElements.define('x-botao', class extends HTMLElement {
+    connectedCallback() {
+      const sombra = this.attachShadow({ mode: 'open' });
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.textContent = this.getAttribute('rotulo') || '';
+      sombra.appendChild(botao);
+    }
+  });
+</script>
+</body>
+</html>
