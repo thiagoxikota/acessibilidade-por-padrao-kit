@@ -1,30 +1,72 @@
 # Trava de acessibilidade
 
-Teste automático para rodar a cada mudança, no GitHub ou em outro CI. Ele trava só o que é **novo e grave**. O que já existia vira tarefa com dono e prazo. Exceção precisa de quem aprovou, motivo e validade.
+Teste automático para rodar a cada mudança, no GitHub ou em outro CI. Ele trava só o que é **novo e grave**. O que já existia vira tarefa com dono e prazo. Exceção precisa de motivo, de quem aprovou e de validade. O que a máquina não consegue julgar vai para uma lista de revisão à mão, com capturas de tela.
 
-As regras vêm da [ficha 4](../fichas/04-trava-preenchida.md).
+As regras vêm da [ficha 4](../fichas/04-trava-preenchida.md). O caso real que inspirou cada regra está em [exemplos/menu-dsgov.md](../exemplos/menu-dsgov.md).
+
+## Antes de tudo: o que ela não faz
+
+- **Não diz que o site é acessível.** Teste automático acha só parte dos problemas. O fabricante do axe calcula 57% dos problemas, contados por quantidade, numa amostra de mais de 13 mil páginas ([Deque, 2021](https://www.deque.com/automated-accessibility-testing-coverage/)). No teste do governo britânico, com 142 barreiras plantadas numa página, o axe achou 29% e a melhor ferramenta, 40% ([GOV.UK, 2018](https://alphagov.github.io/accessibility-tool-audit/)). As ferramentas mudaram desde então; o método continua valendo. Teclado, leitor de tela e teste com gente continuam ([ficha 1](../fichas/01-teste-de-teclado.md)).
+- **Não testa interação sozinha.** Ela olha a página como abre. Para menu aberto, modal ou erro de formulário, descreva o caminho num [roteiro](#5-teste-estados-com-um-roteiro).
+- **Não bloqueia deploy sozinha.** Ela só falha o job. Para a mudança "não ir pro ar", o check precisa ser obrigatório na branch e o deploy precisa depender dele (veja [Ligue no CI](#6-ligue-no-ci)).
+
+## O que ela pega e o que não pega
+
+Cada linha é uma página com a barreira plantada de propósito, em `teste/paginas/`, e um teste que exige o resultado da tabela. Inclusive os limites: se um dia a trava passar a pegar foco invisível, o teste avisa.
+
+| Barreira plantada | Resultado | Por quê |
+|---|---|---|
+| Imagem sem texto alternativo | **Trava** | axe `image-alt`, impacto crítico |
+| Botão sem nome | **Trava** | axe `button-name`, impacto crítico |
+| Contraste baixo | **Trava** | axe `color-contrast`, impacto sério |
+| Zoom bloqueado (`user-scalable=no`) | **Trava** | axe `meta-viewport` é moderado, mas está em `SEMPRE_TRAVA` |
+| Botão sem nome dentro de menu fechado | Passa | Escondido, o axe não olha |
+| O mesmo menu, aberto por um roteiro | **Trava** | O roteiro clica e espera o menu aparecer |
+| Página que rola para o lado em 320 px | Revisar à mão | Sinal geométrico, WCAG 1.4.10 |
+| Texto cortado com a fonte em 200% | Revisar à mão | Sinal geométrico, WCAG 1.4.4 |
+| Foco invisível (`outline: none`) | **Passa: limite conhecido** | Nenhuma regra do axe cobre o critério 2.4.7. Só o [teste de teclado](../fichas/01-teste-de-teclado.md) pega |
+| Ordem de foco sem sentido | **Passa: limite conhecido** | Idem |
+
+O método vem da auditoria de ferramentas do governo britânico: plante a barreira e confira o que cada ferramenta pega, para nenhuma delas ficar verde em silêncio.
 
 ## O que ela faz
 
-1. Abre cada rota do site num Chromium com tela de celular.
-2. Roda o [axe-core](https://github.com/dequelabs/axe-core) (regras WCAG 2.0, 2.1 e 2.2, níveis A e AA) em três modos:
-   - `normal`;
-   - `cores-forcadas`: alto contraste do sistema;
-   - `texto-200`: fonte base dobrada, uma aproximação do texto ampliado a 200%.
-3. Compara o que achou com a linha de base e as exceções.
+1. Abre cada rota do site num Chromium, com tela de celular (ou de computador, se você pedir).
+2. Se houver roteiro, clica, preenche e espera até a tela chegar no estado pedido.
+3. Roda o [axe-core](https://github.com/dequelabs/axe-core) com as regras WCAG 2.0, 2.1 e 2.2, níveis A e AA, em até quatro modos:
+
+| Modo | O que simula | O que mede |
+|---|---|---|
+| `normal` | A página como abre | Regras do axe |
+| `cores-forcadas` | Alto contraste do sistema (`forced-colors: active`) | Regras do axe e captura de tela. Nesse modo, sombra some ([CSS Color Adjustment](https://www.w3.org/TR/css-color-adjust-1/)): foco desenhado só com `box-shadow` desaparece. Olhe a captura |
+| `texto-200` | Fonte base dobrada (`html { font-size: 200% }`) | Regras do axe e **texto cortado** por caixa de altura ou largura fixa ([WCAG 1.4.4](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html)) |
+| `largura-320` | Tela de 320 px, o mesmo que 1280 px com zoom de 400% | Regras do axe e **rolagem horizontal** ([WCAG 1.4.10](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html)) |
+
+4. Guarda os resultados que o axe marcou como "não consegui decidir" (`incomplete`) na lista de revisão à mão, em vez de descartar.
+5. Compara tudo com a linha de base e as exceções.
 
 | Situação | Resultado |
 |---|---|
-| Problema novo de impacto crítico | **Trava** (sai com código 1) |
+| Problema novo de impacto `critical` ou `serious`, ou de uma regra em `SEMPRE_TRAVA` | **Trava** (código 1) |
+| Problema da linha de base que piorou de impacto | **Trava** |
+| Exceção vencida, mesmo para item da linha de base | **Trava** |
+| Exceção sem `motivo`, `aprovado_por` ou `validade`, ou com data impossível | **Trava** |
 | Problema que já estava na linha de base | Passa, e aparece na contagem |
-| Problema coberto por exceção dentro da validade | Passa, e aparece com quem aprovou |
-| Exceção vencida | **Trava** |
-| Exceção sem `motivo`, `aprovado_por` ou `validade` | **Trava** |
-| Problema novo abaixo do impacto que trava | Passa, como aviso |
-| Item da linha de base que não aparece mais | Passa, e avisa que pode sair da base |
-| Site fora do ar ou configuração errada | Erro (código 2) |
+| Linha de base sem dono, sem prazo ou com prazo vencido | Passa com aviso. Com `ESTRITO=1`, trava |
+| Problema coberto por exceção dentro da validade | Passa, e mostra quem aprovou e até quando |
+| Problema novo de impacto `moderate` ou `minor` | Passa, como aviso |
+| Exceção que não cobre mais nada | Passa, e avisa que pode sair do arquivo |
+| Item da linha de base que sumiu nas rotas e modos testados | Passa, e avisa que foi resolvido |
+| Texto cortado, rolagem horizontal, regra que o axe não decidiu | Passa, na lista **Para revisar à mão** |
+| Configuração errada, nada para testar, site fora do ar, JSON quebrado, roteiro que não acha o botão | Erro (código 2). Nunca vira verde |
 
-Verde quer dizer: a máquina não achou erro novo. Teste automático não pega tudo. Ordem de foco, texto e uso real dependem de teste com gente ([ficha 1](../fichas/01-teste-de-teclado.md)).
+### Por que `critical` e `serious`, e por que o zoom trava sempre
+
+O axe classifica cada falha por impacto: `minor`, `moderate`, `serious` e `critical` ([descrição das regras](https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md)). Ele chama de `serious` falhas como **contraste baixo**, **link sem nome** e **alvo de toque pequeno**. No estudo que deu origem a este kit, contraste foi a falha mais frequente. Travar só `critical` deixaria passar justamente ela.
+
+**Zoom bloqueado** é `moderate` no axe, mas impede quem tem baixa visão de ampliar a página. Por isso fica em `SEMPRE_TRAVA`.
+
+Impacto do axe e nível da WCAG são coisas diferentes: o impacto diz quanto atrapalha quem usa; o nível (A, AA) diz o que a norma exige.
 
 ## Como usar
 
@@ -44,7 +86,9 @@ Com o site rodando:
 BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run linha-de-base
 ```
 
-Isso grava `linha-de-base.json` com tudo o que já existe hoje. Preencha `dono` e `prazo` de cada item e faça commit do arquivo. É uma lista de tarefas, não um tapete para esconder problema.
+Isso grava `linha-de-base.json` com o que já existe hoje. Preencha `dono` e `prazo` de cada item e faça commit do arquivo. É uma lista de tarefas, não um tapete para esconder problema.
+
+Rodar de novo **preserva** dono, prazo e nota de quem já tinha. Itens novos entram com `[definir]`.
 
 ### 2. Rode a trava
 
@@ -52,9 +96,37 @@ Isso grava `linha-de-base.json` com tudo o que já existe hoje. Preencha `dono` 
 BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run trava
 ```
 
-### 3. Registre exceções, se precisar
+Saída real, numa página com dois problemas graves:
 
-Copie `excecoes.exemplo.json` para `excecoes.json`. Cada exceção cobre uma regra num seletor (e, se quiser, numa rota):
+```text
+Trava de acessibilidade: 1 rota(s), 0 estado(s) de roteiro, 1 execucao(oes), modos normal, telas celular.
+Trava em: impacto critical, serious, e sempre em meta-viewport. Regras: wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa.
+Ja existiam (na linha de base): 0.
+
+TRAVOU: 2 problema(s).
+Novo e grave:
+  /com-falha.html  button-name  #fechar  (critical; em celular/normal)
+    Buttons must have discernible text
+    https://dequeuniversity.com/rules/axe/4.11/button-name?application=playwright
+Novo e grave:
+  /com-falha.html  image-alt  #foto  (critical; em celular/normal)
+    Images must have alternative text
+    https://dequeuniversity.com/rules/axe/4.11/image-alt?application=playwright
+
+Relatorio completo em trava-relatorio.json.
+```
+
+### 3. Quando consertar, limpe a linha de base
+
+```sh
+BASE_URL=http://localhost:4321 ROTAS=/,/contato npm run limpar-resolvidos
+```
+
+Tira só o que foi consertado nas rotas e modos testados. Não adiciona nada. Se o problema voltar depois, ele volta como **novo** e trava.
+
+### 4. Registre exceções, se precisar
+
+Copie `excecoes.exemplo.json` para `excecoes.json`. Cada exceção cobre uma regra num seletor (e, se quiser, numa rota e num estado do roteiro):
 
 ```json
 {
@@ -67,24 +139,70 @@ Copie `excecoes.exemplo.json` para `excecoes.json`. Cada exceção cobre uma reg
 }
 ```
 
-### 4. Ligue no CI
+### 5. Teste estados com um roteiro
 
-`exemplo-workflow.yml` mostra um job do GitHub Actions. Ajuste o passo que sobe o seu site.
+Menu aberto, modal e erro de formulário só existem depois de uma ação. Descreva o caminho em `roteiro.json` (veja `roteiro.exemplo.json`) e passe `ROTEIRO=roteiro.json`:
+
+```json
+{
+  "rota": "/",
+  "estado": "menu aberto",
+  "acoes": [
+    { "clicar": "#abrir-menu" },
+    { "esperar": "#menu" }
+  ]
+}
+```
+
+Ações: `clicar` (seletor), `esperar` (seletor visível), `teclar` (tecla, como `Tab` ou `Escape`) e `preencher` (seletor, com `texto`). Se uma ação falhar, a trava dá erro de configuração em vez de testar a tela errada. A ideia vem das `actions` do [pa11y-ci](https://github.com/pa11y/pa11y-ci).
+
+### 6. Ligue no CI
+
+`exemplo-workflow.yml` mostra um job do GitHub Actions: sobe o site, roda a trava, escreve o resumo na página do job e guarda o relatório e as capturas.
+
+Para a trava valer de verdade:
+
+1. **Torne o check obrigatório.** No GitHub: Settings, Rules (ou Branches), regra da `main`, "Require status checks to pass", e escolha o job `trava`.
+2. **Faça o deploy depender dele.** Se o deploy roda no mesmo workflow, use `needs: trava`. Se roda em outro serviço, deixe o deploy só a partir da `main` protegida.
 
 ## Variáveis
 
 | Variável | Padrão | Para quê |
 |---|---|---|
 | `BASE_URL` | obrigatória | Endereço do site |
-| `ROTAS` | `/` | Rotas separadas por vírgula |
-| `MODOS` | `normal,cores-forcadas,texto-200` | Quais modos rodar |
-| `IMPACTO` | `critical` | Impactos que travam. Ex.: `critical,serious` |
+| `ROTAS` | `/` (vazio se houver `ROTEIRO`) | Rotas separadas por vírgula |
+| `ROTEIRO` | nenhum | Arquivo com estados que exigem interação |
+| `MODOS` | `normal,cores-forcadas,texto-200,largura-320` | Quais modos rodar |
+| `TELAS` | `celular` | `celular` (390 px), `computador` (1280 px) ou os dois |
+| `IMPACTO` | `critical,serious` | Impactos que travam: `critical`, `serious`, `moderate`, `minor` |
+| `SEMPRE_TRAVA` | `meta-viewport` | Regras do axe que travam qualquer que seja o impacto |
+| `REGRAS` | `wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa` | Tags do axe. Some `best-practice` para incluir boas práticas |
+| `ESPERA` | `load` | Quando a página está pronta: `load`, `domcontentloaded` ou `networkidle` |
+| `ESTRITO` | desligado | `1` faz a linha de base sem dono ou com prazo vencido travar |
 | `LINHA_DE_BASE` | `linha-de-base.json` | Arquivo da linha de base |
 | `EXCECOES` | `excecoes.json` | Arquivo de exceções |
 | `RELATORIO` | `trava-relatorio.json` | Relatório completo em JSON |
-| `HOJE` | data atual | Data usada para checar validade (útil em teste) |
+| `CAPTURAS` | `trava-capturas` | Pasta das capturas de tela. `0` desliga |
+| `HOJE` | data local | Data usada para checar validade e prazo. Defina `TZ=America/Sao_Paulo` no CI |
 
 **Comece pequeno.** Uma rota, um tipo de falha, uma pessoa responsável. Teste que demora é teste que o time desliga.
+
+## Limites que você precisa saber
+
+- **A linha de base reconhece cada problema pelo seletor do axe.** Se o time renomeia uma classe ou um id, o problema antigo aparece como novo. Prefira ids estáveis nos componentes, ou regenere a base na mesma mudança (dono e prazo são preservados).
+- **`texto-200` é uma aproximação.** Ela dobra a fonte base; texto definido em `px` não cresce. A verificação de verdade é ampliar só o texto no navegador e olhar ([ficha 1](../fichas/01-teste-de-teclado.md)).
+- **`cores-forcadas` depende da captura.** O axe mede a página, mas ícone que some e foco que desaparece só aparecem na imagem.
+- **Roda no Chromium.** A emulação de cores forçadas não foi conferida em Firefox e WebKit.
+
+## Quando usar outra ferramenta
+
+| Você quer | Use |
+|---|---|
+| Testar acessibilidade dentro dos testes que o time já tem | [axe com Playwright Test](https://playwright.dev/docs/accessibility-testing) |
+| Rodar muitas páginas a partir de um sitemap | [pa11y-ci](https://github.com/pa11y/pa11y-ci) |
+| Acessibilidade junto com desempenho e SEO | [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci). Trave por auditoria, não pela nota: a nota de acessibilidade é uma média que [deixa de fora os testes manuais](https://developer.chrome.com/docs/lighthouse/accessibility/scoring) |
+| Ouvir o exemplo num leitor de tela, de forma automática | [Guidepup](https://github.com/guidepup/guidepup) (não testado com este kit) |
+| Linha de base com dono e prazo, exceção com validade, revisão à mão com capturas | Esta trava |
 
 ## Teste da própria trava
 
@@ -92,4 +210,4 @@ Copie `excecoes.exemplo.json` para `excecoes.json`. Cada exceção cobre uma reg
 npm test
 ```
 
-Sobe duas páginas locais (uma limpa, uma com falhas conhecidas) e confere oito casos: página limpa passa, falha nova trava, linha de base gerada e respeitada, exceção válida libera, exceção vencida trava, exceção incompleta trava e configuração faltando dá erro.
+Sobe páginas locais com barreiras plantadas e confere 37 casos: o básico, contraste, zoom bloqueado, os dois limites conhecidos (foco invisível e ordem de foco), roteiro de menu aberto, linha de base (gerar, preservar dono, prazo vencido, modo estrito), conserto e regressão, exceções (válida, vencida, incompleta, data impossível, sem uso), revisão à mão (rolagem e texto cortado), capturas, resumo do GitHub e erros de configuração que nunca podem virar verde.

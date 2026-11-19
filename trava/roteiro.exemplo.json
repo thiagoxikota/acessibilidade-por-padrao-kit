@@ -1,0 +1,19 @@
+[
+  {
+    "rota": "/",
+    "estado": "menu aberto",
+    "acoes": [
+      { "clicar": "#abrir-menu" },
+      { "esperar": "#menu" }
+    ]
+  },
+  {
+    "rota": "/contato",
+    "estado": "erro no formulario",
+    "acoes": [
+      { "preencher": "#email", "texto": "email-invalido" },
+      { "clicar": "button[type=submit]" },
+      { "esperar": "#erro-email" }
+    ]
+  }
+]

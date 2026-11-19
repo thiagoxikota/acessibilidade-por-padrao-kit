@@ -6,11 +6,13 @@ Uma trava só funciona com regra. Preencha os cinco campos antes de ligar o test
 
 | Campo | Resposta |
 |---|---|
-| **Qual teste** | O Axe roda na página do exemplo do menu, a cada mudança. |
-| **O que trava** | Falha crítica nova e confirmada. A mudança não vai pro ar. |
+| **Qual teste** | O axe roda na página do exemplo do menu, a cada mudança. |
+| **O que trava** | Falha nova e grave. A mudança não entra. |
 | **O que já existia** | Vira tarefa, com dono e prazo. Não trava, mas não some. |
 | **Exceção** | Fica registrada: quem aprovou, por quê e até quando. |
 | **Quem responde** | Quem mantém o componente de menu. |
+
+O caso completo está em [exemplos/menu-dsgov.md](../exemplos/menu-dsgov.md).
 
 ## Em branco, para o seu time
 
@@ -20,14 +22,23 @@ Uma trava só funciona com regra. Preencha os cinco campos antes de ligar o test
 | **O que trava** | |
 | **O que já existia** | |
 | **Exceção** | |
-| **Quem responde** | |
+| **Quem responde** | Responsável principal: <br> Apoio: |
+
+## Como escrever uma boa regra
+
+- **Como resultado que dá para testar.** Não "o banner é acessível", e sim "o texto do banner tem contraste de pelo menos 4,5:1 com o fundo". É assim que o governo britânico escreve os critérios dos componentes dele ([GOV.UK](https://docs.publishing.service.gov.uk/repos/govuk_publishing_components/accessibility_acceptance_criteria.html)).
+- **Cada falha encontrada vira um critério novo**, tratado como um teste que falha. O mesmo guia do governo britânico recomenda isso. Se a falha voltar, alguém fica sabendo.
+- **Um dono principal e um de apoio.** A W3C sugere marcar, para cada tarefa de acessibilidade, quem responde por ela (principal), quem ajuda a fazer (apoio) e quem precisa ser consultado. As funções vão de design e conteúdo a desenvolvimento ([ARRM, rascunho](https://www.w3.org/WAI/planning/arrm/)).
 
 ## Como isso vira código
 
-A pasta [trava/](../trava/README.md) implementa exatamente essas regras:
+A pasta [trava/](../trava/README.md) implementa essas regras:
 
-- **O que trava:** falha nova de impacto crítico (dá para incluir as sérias).
-- **O que já existia:** fica em `linha-de-base.json`, com campos `dono` e `prazo`.
-- **Exceção:** fica em `excecoes.json`, com `motivo`, `aprovado_por` e `validade`. Exceção vencida trava de novo.
+| Campo | Na trava |
+|---|---|
+| **O que trava** | Falha nova de impacto `critical` ou `serious` no axe. Contraste baixo é `serious`, por isso entra. Zoom bloqueado trava sempre. |
+| **O que já existia** | `linha-de-base.json`, com `dono` e `prazo`. Com `ESTRITO=1`, falta de dono ou prazo vencido também trava. |
+| **Exceção** | `excecoes.json`, com `motivo`, `aprovado_por` e `validade`. Vencida, trava de novo. |
+| **"Não vai pro ar"** | Só vale se o check for **obrigatório** na branch e o deploy depender dele. |
 
-Verde quer dizer: a máquina não achou erro novo. O teste com gente continua.
+Verde quer dizer: a máquina não achou falha nova. O teste com gente continua.

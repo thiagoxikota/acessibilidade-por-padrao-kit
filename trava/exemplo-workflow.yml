@@ -1,6 +1,9 @@
 # Copie para .github/workflows/acessibilidade.yml no seu projeto.
-# Este exemplo supoe o kit copiado para a pasta acessibilidade/ do seu repositorio.
+# Este exemplo supoe a pasta trava/ do kit copiada para acessibilidade/trava/ no seu repositorio.
 # Ajuste o passo que sobe o site e as rotas.
+#
+# Para a trava valer: torne o job "trava" obrigatorio na regra da branch main
+# (Settings > Rules ou Branches > Require status checks to pass) e faca o deploy depender dele.
 name: Acessibilidade
 
 on:
@@ -8,10 +11,15 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   trava:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      TZ: America/Sao_Paulo
     steps:
       - uses: actions/checkout@v4
 
@@ -40,9 +48,19 @@ jobs:
           ROTAS: /,/contato
         run: npm run trava
 
-      - name: Guardar o relatorio
+      - name: Guardar relatorio e capturas
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: relatorio-acessibilidade
-          path: acessibilidade/trava/trava-relatorio.json
+          name: acessibilidade
+          path: |
+            acessibilidade/trava/trava-relatorio.json
+            acessibilidade/trava/trava-capturas/
+
+  # Exemplo: deploy so depois da trava passar.
+  # deploy:
+  #   needs: trava
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - run: echo "seu deploy aqui"
