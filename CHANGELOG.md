@@ -1,5 +1,12 @@
 # Mudanças
 
+## 2.3.1, 20/11/2026
+
+Manutenção de versão, sem mudança no que a trava confere.
+
+- **Node 22 ou mais novo.** O Node 20 saiu de suporte em 30/04/2026. O teste próprio agora roda no Node 22 e no 24, e o exemplo de workflow usa o 24.
+- **Ações do GitHub atualizadas** no exemplo e no teste: `actions/checkout@v7`, `actions/setup-node@v7` e `actions/upload-artifact@v7`. As versões 4 miravam o Node 20, e o GitHub já avisava disso ao rodar o teste do kit.
+
 ## 2.3.0, 20/11/2026
 
 Do aviso à trava, no GitHub. A trava já falhava o job, mas o kit não mostrava como chegar em "sem verde, sem merge".

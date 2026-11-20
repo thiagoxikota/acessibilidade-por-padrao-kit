@@ -15,7 +15,7 @@ O relatório acha a falha. A biblioteca evita que ela volte. Este kit traz o que
 
 **Sem instalar nada, em 5 minutos:** abra a [ficha 1](fichas/01-teste-de-teclado.md), escolha uma tarefa do seu produto e faça a tarefa só com o teclado. Anote onde o foco some.
 
-**Com o código à mão:** rode a trava no seu site local. Precisa de Node 20 ou mais novo; a primeira instalação baixa um Chromium.
+**Com o código à mão:** rode a trava no seu site local. Precisa de Node 22 ou mais novo; a primeira instalação baixa um Chromium.
 
 ```sh
 cd trava

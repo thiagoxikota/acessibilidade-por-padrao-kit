@@ -30,11 +30,11 @@ jobs:
     env:
       TZ: America/Sao_Paulo
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
       # Suba o seu site aqui. Exemplo para um site estatico ja gerado em dist/:
       - name: Gerar e servir o site
@@ -59,7 +59,7 @@ jobs:
 
       - name: Guardar relatorio e capturas
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: acessibilidade
           path: |
@@ -73,5 +73,5 @@ jobs:
   #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: ubuntu-24.04
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v7
   #     - run: echo "seu deploy aqui"

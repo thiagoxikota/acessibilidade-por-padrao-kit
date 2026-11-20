@@ -1,12 +1,12 @@
 {
   "name": "trava-de-acessibilidade",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Trava de acessibilidade para CI: axe em quatro modos de tela, linha de base e excecao com validade.",
   "type": "module",
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "trava": "node trava.mjs",

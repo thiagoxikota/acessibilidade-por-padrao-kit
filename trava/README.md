@@ -73,7 +73,7 @@ Impacto do axe e nível da WCAG são coisas diferentes: o impacto diz quanto atr
 
 ## Como usar
 
-Precisa de Node 20 ou mais novo.
+Precisa de Node 22 ou mais novo.
 
 ```sh
 cd trava
