@@ -1,5 +1,16 @@
 # Mudanças
 
+## 2.3.0, 20/11/2026
+
+Do aviso à trava, no GitHub. A trava já falhava o job, mas o kit não mostrava como chegar em "sem verde, sem merge".
+
+### Trava
+
+- **Guia do GitHub em três peças** ([trava/github.md](trava/github.md)): o teste roda a cada pull request, vira obrigatório na branch principal, e a publicação espera o verde (no próprio GitHub Actions, na Vercel e na Netlify). Cada passo cita a documentação oficial, lida em 20/11/2026, e os termos (CI/CD, pull request, merge, check, ruleset) vêm explicados numa frase.
+- **Regra pronta da branch** ([trava/regra-da-main.json](trava/regra-da-main.json)), no formato da API de rulesets do GitHub: check `trava` obrigatório, mudança só por pull request, sem apagar nem reescrever a branch, e ninguém na lista de quem pode furar. Entra pela tela (Import a ruleset) ou por um comando do GitHub CLI.
+- **Exemplo de workflow** explica os três jeitos de a trava falhar calada ou segurar tudo: filtro no gatilho deixa o check pendente para sempre, `if` no job dá sucesso falso, e nome de job repetido deixa o resultado ambíguo. Ganhou o gatilho `merge_group`, para quem usa fila de merge, e o exemplo de deploy roda só no push da `main`.
+- **Teste próprio** de 94 para 97 casos: confere a regra pronta e o exemplo de workflow, e um caso planta um workflow errado para provar que a conferência acusa.
+
 ## 2.2.0, 19/11/2026
 
 Terceira revisão do código, de novo à procura de verde falso. Cada correção da trava abaixo vem com um caso de teste que falha na 2.1.

@@ -53,8 +53,9 @@ As fichas são Markdown simples: dá para copiar para o Notion, a wiki, o Figma 
 - **Estados com interação** (menu aberto, erro de formulário) entram por um roteiro de cliques.
 - **O que a máquina não consegue julgar** vai para uma lista de revisão à mão, com capturas de tela.
 - **Configuração errada ou site fora do ar** dá erro. Nunca vira verde.
+- **No GitHub**, um [guia em três peças](trava/github.md) e a [regra pronta da branch](trava/regra-da-main.json): o teste roda a cada pull request, sem verde não tem merge, e a publicação espera.
 
-A trava tem teste próprio: 94 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
+A trava tem teste próprio: 97 casos com barreiras plantadas de propósito, inclusive dois limites conhecidos que o axe não pega (foco invisível e ordem de foco). Esse teste roda a cada mudança neste repositório.
 
 ## O que este kit não é
 
@@ -81,6 +82,7 @@ O kit junta o que já funciona em guias públicos e projetos abertos de acessibi
 | Ações antes do teste: clicar, preencher, esperar | pa11y-ci | Roteiro da trava |
 | Falha conhecida guardada pela "impressão digital" | Playwright, guia de testes de acessibilidade | Linha de base da trava |
 | Travar por regra, não pela nota | Lighthouse, como a nota é calculada | README da trava |
+| Check obrigatório na branch; job pulado conta como sucesso | GitHub, rulesets e status checks | Guia do GitHub da trava |
 
 ## O estudo por trás
 

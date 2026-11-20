@@ -613,6 +613,75 @@ await caso('o teste nao herda a configuracao da trava do terminal', 0, async () 
   }
 });
 
+// 8. O que liga a trava no GitHub: a regra pronta da branch e o exemplo de workflow
+// Conferencia por texto, sem biblioteca de YAML: o exemplo e nosso e curto. Cada bloco precisa ser
+// achado primeiro; senao a conferencia nao olhou nada e falha, em vez de passar calada.
+function problemasDoWorkflow(texto) {
+  const linhas = texto.split('\n');
+  const recuo = (l) => l.length - l.trimStart().length;
+  const util = (l) => l.trim() !== '' && !l.trim().startsWith('#');
+  const bloco = (inicio, nivel) => {
+    const i = linhas.findIndex((l) => inicio.test(l));
+    if (i < 0) return null;
+    const fim = linhas.findIndex((l, j) => j > i && util(l) && recuo(l) <= nivel);
+    return linhas.slice(i + 1, fim < 0 ? undefined : fim).filter(util);
+  };
+  const problemas = [];
+  const gatilho = bloco(/^on:\s*$/, 0);
+  if (!gatilho) problemas.push('sem bloco on:');
+  else {
+    if (gatilho.some((l) => /^\s*(paths|paths-ignore|branches-ignore):/.test(l))) problemas.push('filtro no gatilho');
+    const pr = gatilho.findIndex((l) => /^\s+pull_request:/.test(l));
+    if (pr < 0) problemas.push('sem gatilho pull_request');
+    else if (/^\s+pull_request:\s*\S/.test(gatilho[pr]) || (gatilho[pr + 1] && recuo(gatilho[pr + 1]) > recuo(gatilho[pr]))) {
+      problemas.push('pull_request com filtro');
+    }
+  }
+  const job = bloco(/^ {2}trava:\s*$/, 2);
+  if (!job) problemas.push('sem job trava');
+  else if (job.some((l) => /^ {4}(if|needs):/.test(l))) problemas.push('job trava com if ou needs');
+  return problemas;
+}
+const exemploWorkflow = readFileSync(join(aqui, '..', 'exemplo-workflow.yml'), 'utf8');
+await caso('o exemplo de workflow nao deixa a trava pendente nem verde por engano', 0, async () => ({
+  codigo: 0,
+  saida: exemploWorkflow,
+  conferir: () => {
+    const p = problemasDoWorkflow(exemploWorkflow);
+    if (p.length) return `exemplo-workflow.yml: ${p.join('; ')}`;
+    if (!/^\s+merge_group:/m.test(exemploWorkflow)) return 'exemplo-workflow.yml sem o gatilho merge_group';
+    if (!/^\s*#\s+needs: trava$/m.test(exemploWorkflow)) return 'exemplo de deploy sem needs: trava';
+    return '';
+  },
+}));
+await caso('a conferencia do workflow acusa filtro no gatilho e if no job trava', 0, async () => {
+  const errado = [
+    'on:', '  pull_request:', '    paths: [src/**]', '  push:', '    branches: [main]',
+    'jobs:', '  trava:', '    if: github.actor != \'bot\'', '    runs-on: ubuntu-24.04', '',
+  ].join('\n');
+  const p = problemasDoWorkflow(errado);
+  const faltou = ['filtro no gatilho', 'pull_request com filtro', 'job trava com if ou needs'].filter((x) => !p.includes(x));
+  return { codigo: 0, saida: p.join('\n'), conferir: () => (faltou.length ? `nao acusou: ${faltou.join(', ')}` : '') };
+});
+await caso('a regra pronta da branch exige o check do job trava e ninguem fura', 0, async () => {
+  const regra = lerJson(join(aqui, '..', 'regra-da-main.json'));
+  const checks = regra.rules?.find((r) => r.type === 'required_status_checks')?.parameters?.required_status_checks || [];
+  return {
+    codigo: 0,
+    saida: JSON.stringify(regra, null, 1),
+    conferir: () => {
+      if (regra.enforcement !== 'active' || regra.target !== 'branch') return 'regra nao esta ativa numa branch';
+      if (!Array.isArray(regra.bypass_actors) || regra.bypass_actors.length) return 'bypass_actors precisa ser lista vazia';
+      if (!regra.conditions?.ref_name?.include?.includes('~DEFAULT_BRANCH')) return 'regra nao vale para a branch padrao';
+      if (!regra.rules.some((r) => r.type === 'pull_request')) return 'regra nao exige pull request';
+      // A ancora: o check exigido tem o nome de um job que existe no exemplo de workflow.
+      if (!checks.some((c) => c.context === 'trava')) return 'regra nao exige o check trava';
+      if (!/^ {2}trava:\s*$/m.test(exemploWorkflow)) return 'exemplo de workflow sem o job trava, que a regra exige';
+      return '';
+    },
+  };
+});
+
 servidor.close();
 
 let falhas = 0;

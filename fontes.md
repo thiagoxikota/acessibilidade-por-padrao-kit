@@ -49,6 +49,26 @@ Cada número, limite e atalho do kit tem fonte pública. Esta lista diz o que ca
 | [Guidepup](https://github.com/guidepup/guidepup) | Leitor de tela automatizado. Não testado com este kit | README da trava |
 | [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) | Medir contraste de graça | Ficha 2 |
 
+## GitHub e publicação
+
+Conferidos em 20/11/2026.
+
+| Fonte | O que sustenta | Onde |
+|---|---|---|
+| [GitHub, sobre rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) | Rulesets em repositório público em qualquer plano; em privado, só com Pro, Team ou Enterprise Cloud | Guia do GitHub |
+| [GitHub, criar rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository) | Caminho na tela; digitar o nome do check e clicar no +; lista de bypass e o modo "For pull requests only" | Guia do GitHub |
+| [GitHub, gerenciar rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/managing-rulesets-for-a-repository) | Importar um ruleset de um arquivo JSON | Guia do GitHub |
+| [GitHub, regras disponíveis](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets) | Pull request obrigatório não exige aprovação; app como fonte esperada do check; branch atualizada custa mais execuções | Guia do GitHub, regra pronta |
+| [GitHub, API de rulesets](https://docs.github.com/en/rest/repos/rules) | Campos do ruleset; o modo `evaluate` só existe no Enterprise | Regra pronta |
+| [GitHub, checks obrigatórios](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks) | O check precisa ter passado no repositório nos últimos sete dias; fila de merge pede o gatilho `merge_group` | Guia do GitHub, exemplo de workflow |
+| [GitHub, branches protegidas](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches) | Nome de job único entre todos os workflows | Guia do GitHub, exemplo de workflow |
+| [GitHub, status checks](https://docs.github.com/en/pull-requests/reference/status-checks) | Job pulado aparece como sucesso, mesmo obrigatório | Guia do GitHub, exemplo de workflow, teste da trava |
+| [GitHub, sintaxe de workflow](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax) | Workflow pulado por filtro ou pela mensagem do commit deixa o check "Pending" | Guia do GitHub, exemplo de workflow, teste da trava |
+| [GitHub, jobs](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs) | `needs`: o deploy só roda depois que a trava passa | Guia do GitHub, exemplo de workflow |
+| [GitHub, uso seguro](https://docs.github.com/en/actions/reference/security/secure-use) | Token só de leitura; não rodar código de terceiros com `pull_request_target`; action de terceiros fixada pelo SHA | Guia do GitHub |
+| [Vercel, Deployment Checks](https://vercel.com/docs/deployment-checks) | Segura o deploy de produção até os checks passarem; "Force Promote" fura | Guia do GitHub |
+| [Netlify, gerenciar deploys](https://docs.netlify.com/deploy/manage-deploys/manage-deploys-overview/) | Parar a publicação automática; nenhuma opção documentada de esperar os checks do GitHub | Guia do GitHub |
+
 ## Leitores de tela e navegadores
 
 | Fonte | O que sustenta | Onde |

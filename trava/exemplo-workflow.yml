@@ -2,14 +2,23 @@
 # Este exemplo supoe a pasta trava/ do kit copiada para acessibilidade/trava/ no seu repositorio.
 # Ajuste o passo que sobe o site e as rotas.
 #
-# Para a trava valer: torne o job "trava" obrigatorio na regra da branch main
-# (Settings > Rules ou Branches > Require status checks to pass) e faca o deploy depender dele.
+# Para a trava valer, siga trava/github.md: o job "trava" vira check obrigatorio na branch
+# principal (regra pronta em trava/regra-da-main.json) e o deploy depende dele.
+#
+# Tres cuidados para a trava nao passar calada nem segurar o pull request para sempre:
+# - Nao filtre o gatilho pull_request (paths, branches) nem use [skip ci] no commit.
+#   Workflow pulado deixa o check obrigatorio "Pending", e o pull request nao entra.
+# - Nao coloque "if" no job trava, nem "needs" de um job que pode falhar antes.
+#   Job pulado aparece como sucesso, mesmo sendo obrigatorio.
+# - O nome "trava" precisa ser unico entre todos os workflows do repositorio.
 name: Acessibilidade
 
 on:
   pull_request:
   push:
     branches: [main]
+  # So conta se o repositorio usa fila de merge (merge queue): a fila tambem espera o check.
+  merge_group:
 
 permissions:
   contents: read
@@ -57,10 +66,12 @@ jobs:
             acessibilidade/trava/trava-relatorio.json
             acessibilidade/trava/trava-capturas/
 
-  # Exemplo: deploy so depois da trava passar.
+  # Exemplo: deploy so depois da trava passar, e so no push da main.
+  # Se a trava falhar, este job nem roda, e nada vai pro ar.
   # deploy:
   #   needs: trava
-  #   if: github.ref == 'refs/heads/main'
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
   #   runs-on: ubuntu-24.04
   #   steps:
+  #     - uses: actions/checkout@v4
   #     - run: echo "seu deploy aqui"
