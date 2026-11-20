@@ -1,6 +1,6 @@
 # Acessibilidade por padrão: kit prático
 
-Material de apoio da palestra **"Acessibilidade por padrão"**, apresentada por Thiago Xikota no Detach! 26, em Fortaleza, em 21/11/2026.
+Material de apoio da palestra **"277 problemas nos design systems do governo brasileiro"**, de Thiago Xikota, no Detach! 26, em Fortaleza, em 21/11/2026.
 
 O relatório acha a falha. A biblioteca evita que ela volte. Este kit traz o que dá para fazer a partir da próxima revisão: seis fichas curtas para design e produto, um caso real contado do começo ao fim e uma trava automática para o código.
 
