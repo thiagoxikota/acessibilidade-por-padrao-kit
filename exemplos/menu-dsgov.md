@@ -8,11 +8,11 @@ Todos os números e datas abaixo têm fonte pública, listada no fim.
 
 O DSGov é o design system do governo federal (gov.br/ds). Na documentação do componente **Menu**, a aba de desenvolvimento traz o código de exemplo da variante "Menu Principal Empurrando (Push)". É o código que uma pessoa desenvolvedora copia e cola.
 
-Em 30/07/2026, esse exemplo foi copiado sem nenhuma mudança para uma página em branco e auditado com o axe-core. Resultado: **22 nós com falha crítica de estrutura** (`aria-required-parent` em 21, `aria-required-children` em 1).
+Em 30/07/2026, esse exemplo foi copiado sem nenhuma mudança para uma página em branco e auditado com o axe-core. Resultado: **22 sinalizações críticas de estrutura, em duas regras do axe** (`aria-required-parent` em 21 elementos, `aria-required-children` em 1).
 
 **O defeito:** o exemplo mistura dois modelos. Usa papéis de árvore (`role="tree"` e `role="treeitem"`) em cima de uma lista comum (`ul` e `li`). A estrutura que o leitor de tela lê fica inválida, e ele pode deixar de anunciar a lista como lista.
 
-**A correção mínima:** tirar os papéis de árvore (1 `role="tree"` e 26 `role="treeitem"`). Nenhuma outra mudança. Na mesma auditoria, as falhas foram de 22 para 0. Essa cópia corrigida foi um experimento à parte, fora do DSGov.
+**A correção mínima:** tirar os papéis de árvore (1 `role="tree"` e 26 `role="treeitem"`). Nenhuma outra mudança. Na mesma auditoria, com as regras da WCAG 2.0 e 2.1 do axe, as 22 sinalizações foram para 0. Essa cópia corrigida foi um experimento à parte, fora do DSGov. A trava deste kit roda também as regras da WCAG 2.2, que medem alvo de toque, e nessa cópia sem CSS a conta dela é outra: 50 antes e 28 depois (veja a seção 3).
 
 Por que isso importa: quem copia o exemplo leva a falha para o próprio produto. É por isso que a [ficha 3](../fichas/03-teste-do-exemplo.md) pede para testar o exemplo, não só o componente.
 

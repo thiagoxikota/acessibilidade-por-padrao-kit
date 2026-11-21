@@ -13,9 +13,11 @@ O relatório acha a falha. A biblioteca evita que ela volte. Este kit traz o que
 
 ## Comece agora
 
-**Sem instalar nada, em 5 minutos:** abra a [ficha 1](fichas/01-teste-de-teclado.md), escolha uma tarefa do seu produto e faça a tarefa só com o teclado. Anote onde o foco some.
+**[Teste uma tarefa com o teclado em 5 minutos](fichas/01-teste-de-teclado.md).** Sem instalar nada: escolha uma tarefa do seu produto, faça a tarefa só com o teclado e anote onde o foco some.
 
-**Com o código à mão:** rode a trava no seu site local. Precisa de Node 22 ou mais novo; a primeira instalação baixa um Chromium.
+**[Veja o caso do menu](exemplos/menu-dsgov.md).** O exemplo de menu da documentação do DSGov levava problemas de estrutura para quem copiasse. O caso vai do achado à correção na biblioteca, com datas e fontes.
+
+**Rode a trava no seu site.** Ela precisa do seu site rodando localmente, no seu computador, e de Node 22 ou mais novo; a primeira instalação baixa um Chromium. Troque `http://localhost:4321` pelo endereço em que o seu site abre.
 
 ```sh
 cd trava
@@ -41,13 +43,13 @@ As fichas são Markdown simples: dá para copiar para o Notion, a wiki, o Figma 
 
 ### Caso real
 
-[O menu do DSGov](exemplos/menu-dsgov.md): o exemplo da documentação levava 22 falhas críticas de estrutura para quem copiasse. O caso mostra o caminho inteiro, do chamado público à correção na biblioteca, com datas e fontes, e o que ainda falta para a correção chegar em quem usa.
+[O menu do DSGov](exemplos/menu-dsgov.md): o exemplo da documentação, copiado sem mudança para uma página em branco, recebeu do axe 22 sinalizações críticas de estrutura, em duas regras. Tirar os papéis de árvore zerou essas 22. O caso mostra o caminho inteiro, do chamado público à correção na biblioteca, com datas e fontes, e o que ainda falta para a correção chegar em quem usa.
 
 ### Trava, para o código
 
 [trava/](trava/README.md) roda o axe-core em cada rota do site, em quatro modos: normal, alto contraste do sistema, texto em 200% e tela de 320 px.
 
-- **Trava só o que é novo e grave:** falha de impacto crítico ou sério no axe, o que inclui contraste baixo. Zoom bloqueado trava sempre.
+- **Trava só o que é novo e grave:** falha de impacto crítico ou sério no axe, o que inclui contraste baixo. Zoom bloqueado conta como grave, embora o axe o classifique como moderado: novo, trava; já na linha de base ou com exceção em vigor, passa como os outros problemas.
 - **O que já existia** fica numa linha de base, com dono e prazo.
 - **Exceção** precisa de motivo, de quem aprovou e de validade. Vencida, trava de novo.
 - **Estados com interação** (menu aberto, erro de formulário) entram por um roteiro de cliques.
@@ -92,7 +94,7 @@ O kit junta o que já funciona em guias públicos e projetos abertos de acessibi
 ## Licenças
 
 - Código (pasta `trava/`): [MIT](LICENSE-MIT).
-- Fichas e textos: [CC BY 4.0](LICENSE-CC-BY-4.0). Pode copiar, adaptar e usar no seu time; cite a fonte.
+- Fichas (pasta `fichas/`), o caso (pasta `exemplos/`) e os outros textos: [CC BY 4.0](LICENSE-CC-BY-4.0). Pode copiar, adaptar e usar no seu time; cite a fonte.
 
 O que mudou em cada versão está em [CHANGELOG.md](CHANGELOG.md).
 

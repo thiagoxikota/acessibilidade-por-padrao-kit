@@ -4,7 +4,7 @@
 
 O exemplo da documentação é o que o time copia. Se a estrutura do exemplo vem quebrada, ela vai junto para o produto.
 
-No estudo que originou este kit, o exemplo do menu do DSGov foi copiado para uma página em branco e a falha veio junto: 22 falhas críticas de estrutura. O caso inteiro, com fontes, está em [exemplos/menu-dsgov.md](../exemplos/menu-dsgov.md).
+No estudo que originou este kit, o exemplo do menu do DSGov foi copiado para uma página em branco e a falha veio junto: 22 sinalizações críticas de estrutura, em duas regras do axe. O caso inteiro, com fontes, está em [exemplos/menu-dsgov.md](../exemplos/menu-dsgov.md).
 
 ## Caminho sem dev (10 minutos)
 
@@ -35,7 +35,7 @@ Escolha uma por revisão:
 
 | Componente | Condição testada | Falhou? | A falha vem de onde? | Onde consertar |
 |---|---|---|---|---|
-| Menu (DSGov), variante Push | Exemplo copiado para página em branco, axe | Sim: 22 falhas críticas de estrutura | Do exemplo da documentação: papéis de árvore em cima de uma lista | Na biblioteca, para chegar em todo produto |
+| Menu (DSGov), variante Push | Exemplo copiado para página em branco, axe | Sim: 22 sinalizações críticas de estrutura, em duas regras do axe | Do exemplo da documentação: papéis de árvore em cima de uma lista | Na biblioteca, para chegar em todo produto |
 
 ## Registro
 

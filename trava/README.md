@@ -63,11 +63,11 @@ O método vem da auditoria de ferramentas do governo britânico: plante a barrei
 | Texto cortado, rolagem horizontal, regra que o axe não decidiu | Passa, na lista **Para revisar à mão** |
 | Configuração errada (tag de regra que não existe; regra de `SEMPRE_TRAVA` que não existe ou não roda com as tags de `REGRAS`, inclusive regra experimental ou obsoleta sem `experimental` ou `deprecated` em `REGRAS`; `ESTRITO` que não é `1` nem `0`; rota que começa com `//` ou tem `\`, tab ou quebra de linha), nada para testar, site fora do ar, JSON quebrado, roteiro com campo desconhecido, que não acha o botão ou que não termina em `esperar` | Erro (código 2). Nunca vira verde |
 
-### Por que `critical` e `serious`, e por que o zoom trava sempre
+### Por que `critical` e `serious`, e por que o zoom conta como grave
 
 O axe classifica cada falha por impacto: `minor`, `moderate`, `serious` e `critical` ([descrição das regras na versão 4.11.4, a que a trava usa](https://github.com/dequelabs/axe-core/blob/v4.11.4/doc/rule-descriptions.md)). Ele chama de `serious` falhas como **contraste baixo**, **link sem nome** e **alvo de toque pequeno**. No estudo que deu origem a este kit, contraste foi a falha mais frequente. Travar só `critical` deixaria passar justamente ela.
 
-**Zoom bloqueado** é `moderate` no axe, mas impede quem tem baixa visão de ampliar a página. Por isso fica em `SEMPRE_TRAVA`.
+**Zoom bloqueado** é `moderate` no axe, mas impede quem tem baixa visão de ampliar a página. Por isso fica em `SEMPRE_TRAVA`, que trava a regra qualquer que seja o impacto. O nome diz "sempre", mas a linha de base e as exceções valem para ela como para as outras: zoom bloqueado novo trava; o que já está na linha de base, ou tem exceção em vigor, passa.
 
 Impacto do axe e nível da WCAG são coisas diferentes: o impacto diz quanto atrapalha quem usa; o nível (A, AA) diz o que a norma exige.
 
@@ -193,7 +193,7 @@ Não filtre o gatilho do pull request nem coloque `if` no job `trava`: workflow 
 | `MODOS` | `normal,cores-forcadas,texto-200,largura-320` | Quais modos rodar |
 | `TELAS` | `celular` | `celular` (390 px), `computador` (1280 px) ou os dois |
 | `IMPACTO` | `critical,serious` | Impactos que travam: `critical`, `serious`, `moderate`, `minor` |
-| `SEMPRE_TRAVA` | `meta-viewport` | Regras do axe que travam qualquer que seja o impacto. Cada uma precisa existir no axe e rodar com as tags de `REGRAS`; senão, erro de configuração. `SEMPRE_TRAVA=` (vazio) desliga |
+| `SEMPRE_TRAVA` | `meta-viewport` | Regras do axe que travam qualquer que seja o impacto. Linha de base e exceção valem para elas como para as outras. Cada uma precisa existir no axe e rodar com as tags de `REGRAS`; senão, erro de configuração. `SEMPRE_TRAVA=` (vazio) desliga |
 | `REGRAS` | `wcag2a,wcag2aa,wcag21a,wcag21aa,wcag22aa` | Tags do axe. Some `best-practice` para incluir boas práticas. Tag que o axe não conhece dá erro; lista que não roda nenhuma regra também. No axe 4.11, `wcag21a` só tem uma regra experimental, que não roda: o critério dela (2.5.3, nome visível dentro do nome acessível) fica para o teste à mão. Some `experimental` para rodar as regras experimentais do axe, que ainda podem errar |
 | `ESPERA` | `load` | Quando a página está pronta: `load`, `domcontentloaded` ou `networkidle` |
 | `ESTRITO` | desligado | `1` faz a linha de base sem dono, sem prazo ou com prazo vencido travar; outro valor que não `0` dá erro. Confere o arquivo inteiro, não só as rotas desta execução: quando um prazo vence, toda mudança trava até alguém renovar o prazo ou consertar. O conserto em si passa: o item que a execução viu consertado não conta |

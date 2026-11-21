@@ -1,5 +1,14 @@
 # Mudanças
 
+## 2.3.2, 21/11/2026
+
+Correções de texto, sem mudança no que a trava confere.
+
+- **README, "Comece agora":** abre com duas ações, testar uma tarefa com o teclado em 5 minutos e ver o caso do menu. O caminho com código diz que precisa do seu site rodando localmente e que o endereço com a porta 4321 é para trocar pelo seu.
+- **Caso do menu do DSGov:** o README, a ficha 3 e o caso dizem o que a evidência sustenta: 22 sinalizações críticas de estrutura, em duas regras do axe, no exemplo copiado para uma página em branco, e 0 depois do conserto, com as regras da WCAG 2.0 e 2.1. O caso avisa logo no começo que a trava, que roda também as regras da WCAG 2.2 e mede alvo de toque, dá 50 antes e 28 depois nessa cópia sem CSS.
+- **Zoom bloqueado:** o texto dizia que ele trava sempre. Ele conta como grave, embora o axe o classifique como moderado, mas a linha de base e as exceções valem para ele como para os outros problemas: novo, trava; já na linha de base, passa. Corrigido no README, na ficha 4 e no manual da trava.
+- **Licença:** o arquivo MIT citava as pastas `scripts/` e `data/`, que não existem neste repositório. Agora cita `trava/`, e o README diz que fichas, caso e outros textos ficam sob CC BY 4.0.
+
 ## 2.3.1, 20/11/2026
 
 Manutenção de versão, sem mudança no que a trava confere.
