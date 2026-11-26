@@ -21,8 +21,8 @@ Por que isso importa: quem copia o exemplo leva a falha para o próprio produto.
 | Data | O que aconteceu |
 |---|---|
 | 31/07/2026 | Chamado público aberto no GitLab do DSGov, com a correção pronta. |
-| 01/09/2026 | Paula Coelho, do time do DSGov, abre a correção na biblioteca. Ela vai além da proposta: também move o `aria-expanded` para o botão que abre o menu. |
-| 13/10/2026 | A correção do time do DSGov entra no código da biblioteca, 74 dias depois do aviso. |
+| 01/09/2026 | Paula Coelho, que contribui com o DSGov, abre a correção na biblioteca (merge request 221). A correção vai além da proposta: também move o `aria-expanded` para o botão que abre o menu. |
+| 13/10/2026 | Os mantenedores do DSGov aceitam a correção no código da biblioteca, 74 dias depois do aviso (horário de Brasília; 14/10 em UTC). O merge request linka o chamado em "Fixes". |
 | 19/11/2026 | Nenhuma versão publicada traz a correção ainda. A última, uma pré-versão (4.0.0-next.11), saiu em 06/05/2026; a última estável, 3.7.0, é de 19/11/2025. |
 
 Corrigir na biblioteca é o passo que mais rende: o conserto chega a todo produto que usa o componente. Mas só chega quando sai numa versão e cada produto atualiza.
@@ -80,7 +80,7 @@ unset BASE_URL ROTAS P
 
 Os quatro passos de uma correção que chega em quem usa:
 
-1. **Aceitar o problema.** Feito: o time pegou o chamado.
+1. **Aceitar o problema.** Feito na prática: a correção linka o chamado em "Fixes". O chamado em si segue aberto no GitLab do DSGov, com status "Novo" em 26/11/2026.
 2. **Corrigir na biblioteca.** Feito em 13/10/2026.
 3. **Publicar uma versão.** Ainda não, até 19/11/2026.
 4. **Chegar no produto.** Cada serviço que usa o menu precisa atualizar. Só aí a pessoa com leitor de tela percebe a diferença.
